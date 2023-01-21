@@ -65,6 +65,13 @@ export const TEST_COMMAND = {
   type: 1,
 };
 
+//
+export const PICTURE_OF_DAY_COMMAND = {
+  name: 'pictureofday',
+  description: 'Basic Picture of Day',
+  type: 1
+};
+
 // Command containing options
 export const CHALLENGE_COMMAND = {
   name: 'challenge',

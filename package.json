@@ -1,7 +1,7 @@
 {
   "name": "getting-started",
   "version": "1.0.0",
-  "description": "",
+  "description": "lpap.app in development",
   "main": "app.js",
   "type": "module",
   "scripts": {
@@ -12,11 +12,26 @@
   "license": "MIT",
   "dependencies": {
     "discord-interactions": "^3.2.0",
+    "discord.js": "^14.7.1",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "node-fetch": "^3.2.3"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
-  }
+    "nodemon": "^2.0.20"
+  },
+  "directories": {
+    "example": "examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nuozrok/lpap.git"
+  },
+  "keywords": [
+    "lol"
+  ],
+  "bugs": {
+    "url": "https://github.com/Nuozrok/lpap/issues"
+  },
+  "homepage": "https://github.com/Nuozrok/lpap#readme"
 }

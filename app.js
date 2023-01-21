@@ -11,7 +11,8 @@ import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js
 import { getShuffledOptions, getResult } from './game.js';
 import {
   CHALLENGE_COMMAND,
-  TEST_COMMAND,
+    TEST_COMMAND,
+    PICTURE_OF_DAY_COMMAND,
   HasGuildCommands,
 } from './commands.js';
 
@@ -56,7 +57,42 @@ app.post('/interactions', async function (req, res) {
           content: 'hello world ' + getRandomEmoji(),
         },
       });
-    }
+      }
+      // "picofday guild command
+      if (name === 'pictureofday') {
+          // Send a message into the channel where command was triggered from
+          // this is when we start using discord.js instead of discord interactions message sends directly...
+          /* TODO fix this
+          const { EmbedBuilder } = require('discord.js');
+
+          // try using embedbuilder form discord.js inside a command, event listener, etc.
+          const exampleEmbed = new EmbedBuilder()
+              .setColor(0x0099FF)
+              .setTitle('Some title')
+              .setURL('https://discord.js.org/')
+              .setAuthor({ name: 'Some name', iconURL: 'https://i.imgur.com/AfFp7pu.png', url: 'https://discord.js.org' })
+              .setDescription('Some description here')
+              .setThumbnail('https://i.imgur.com/AfFp7pu.png')
+              .addFields(
+                  { name: 'Regular field title', value: 'Some value here' },
+                  { name: '\u200B', value: '\u200B' },
+                  { name: 'Inline field title', value: 'Some value here', inline: true },
+                  { name: 'Inline field title', value: 'Some value here', inline: true },
+              )
+              .addFields({ name: 'Inline field title', value: 'Some value here', inline: true })
+              .setImage('https://i.imgur.com/AfFp7pu.png')
+              .setTimestamp()
+              .setFooter({ text: 'Some footer text here', iconURL: 'https://i.imgur.com/AfFp7pu.png' });
+          channel.send({ embeds: [exampleEmbed] });
+          */
+          return res.send({
+              type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+              data: {
+                  // Fetches a random emoji to send from a helper function
+                  content: 'picture of day: ' + getRandomEmoji(),
+              },
+          });
+      }
     // "challenge" guild command
     if (name === 'challenge' && id) {
       const userId = req.body.member.user.id;
@@ -181,6 +217,7 @@ app.listen(PORT, () => {
   // Check if guild commands from commands.js are installed (if not, install them)
   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
     TEST_COMMAND,
-    CHALLENGE_COMMAND,
+      CHALLENGE_COMMAND,
+      PICTURE_OF_DAY_COMMAND
   ]);
 });
