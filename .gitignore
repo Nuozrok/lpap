@@ -4,3 +4,5 @@ node_modules
 package-lock.json
 .vs/
 config.json
+# chatlogs for training recurrent neural network
+tf/*.log
