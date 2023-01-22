@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1440" height="1080">
+	<clipPath id="cl_21">
+		<rect width="1440" height="1080"/>
+	</clipPath>
+	<g clip-path="url(#cl_21)">
+		<path fill="#4A9931" transform="matrix(-1.29904 -0.75 0.75 -1.29904 972 584.25)" d="M104.166 57.877L104.166 27.877L157.19 -63.7583L165.852 -48.758L104.166 57.877Z" fill-rule="evenodd"/>
+		<path fill="#4A9931" transform="matrix(-1.5 0 0 -1.5 1013.25 540)" d="M88.7741 72.7073L89.3607 -68.4568L104.147 -68.488L104.166 27.877L104.165 63.6978L88.7741 72.7073Z" fill-rule="evenodd"/>
+		<path fill="#5499A6" transform="matrix(1.29904 -0.75 -0.75 -1.29904 761.25 412.5)" d="M1.10935 56.9415L-7.5545 41.9432L45.1108 -50.2508L62.4674 -50.2593L8.66016 42.877L1.10935 56.9415Z" fill-rule="evenodd"/>
+		<path fill="#5499A6" transform="matrix(1.29904 0.75 0.75 -1.29904 679.5 411.75)" d="M-1.30974 56.2485L-8.66016 42.877L-62.5498 -50.6078L-45.6999 -50.6405L7.34931 41.2466L-1.30974 56.2485Z" fill-rule="evenodd"/>
+		<path fill="#E4344C" transform="matrix(1.29904 -0.75 -0.75 -1.29904 807 396)" d="M-153.964 62.2717L-161.506 49.2233L-101.298 -59.4333L-92.6363 -44.4336L-153.964 62.2717Z" fill-rule="evenodd"/>
+		<path fill="#E4344C" transform="matrix(1.5 0 0 -1.5 810.281 540)" d="M-166.62 72.8296L-166.606 -68.5038L-152.201 -68.6556L-151.666 27.877L-151.64 64.1881L-166.62 72.8296Z" fill-rule="evenodd"/>
+		<path fill="#ABABAB" transform="matrix(-0.75 1.29904 1.29904 0.75 480.774 932.284)" d="M-193.354 72.5126L-208.352 63.8523L-208.5 -42.4125L-193.694 -50.5558L-193.354 72.5126Z" fill-rule="evenodd"/>
+		<path fill="#ABABAB" transform="matrix(0.75 1.29904 1.29904 -0.75 773.198 1039.65)" d="M-208.243 184.764L-208.34 79.3184L-193.342 70.6652L-193.852 193.528L-208.243 184.764Z" fill-rule="evenodd"/>
+	</g>
+</svg>

@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+
 const { dotenv } = require('dotenv/config');
 
 
@@ -22,7 +23,6 @@ for (const file of commandFiles) {
 	}
 };
 
-	
 
 client.once(Events.ClientReady, c => {
 	console.log(`Ready! logged in as ${c.user.tag}`);
@@ -46,6 +46,5 @@ client.on(Events.InteractionCreate, async interaction => {
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
-
 
 client.login(process.env.DISCORD_TOKEN);
