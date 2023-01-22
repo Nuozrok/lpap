@@ -16,10 +16,19 @@ lpap.app in development
 ^^ using discord's api directly is hurting my eyes so going to start using discord.js to abstract that and use more normal object oriented stuff
 
 
-- Picture of the day with bot integration  maybe https://discordjs.guide/oauth2/#setting-up-a-basic-web-server, maybe https://discordjs.guide/oauth2/#setting-up-a-basic-web-server , less clear
+- Picture of the day with bot integration  
+
+maybe https://discordjs.guide/oauth2/#setting-up-a-basic-web-server, less clear
 (post in \#general or new channel?)
-- Photo gallery 
+
+https://github.com/discordjs/discord.js/issues/5629 posting to the channel where the slash command sent isn't hard but attaching an image to that posted message is
+
+- Photo gallery  
+--this would require a database layer
+
 - Music playlists
+-- going to hope you are referring to spotify here
+
 - Discord Chat log
 - File sharing?
 - Event calendar
