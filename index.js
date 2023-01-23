@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
+
 const { dotenv } = require('dotenv/config');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -24,8 +25,6 @@ for (const file of commandFiles) {
 	}
 };
 
-
-
 // read through all the files in the event folder and set up discord.js listeners to execute them when required
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
@@ -36,6 +35,5 @@ for (const file of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
-
 
 client.login(process.env.DISCORD_TOKEN);
