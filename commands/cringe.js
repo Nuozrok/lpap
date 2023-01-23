@@ -71,36 +71,40 @@ module.exports = {
                 .addIntegerOption(option=>
                     option
                         .setName('history')
-                        .setDescription('This many of the most recent posts will be used in the training set. Type 0 for full history.')
+                        .setDescription('This many of the most recent posts will be used in the training set.')
                         // please do not break the bot, thanks
+                        .setMinValue(100) // needs experimenting
                         .setMaxValue(9999)
                 )
         ),
     async execute(interaction){
-        await interaction.reply('TEST!');
-        const target = interaction.options.getUser('target');
-        
-        if(interaction.options.getSubcommand()=='post'){
+        let message = 'TEST!';
+        let target = interaction.options.getUser('target');
+        message = message.concat(`\ntarget: ${target.username}`);
+        if(interaction.options.getSubcommand() === 'post'){
             // TODO
             // check if there is a model
-        }else if (InteractionResponse.options.getSubcommand() == 'train'){
+        }else if (interaction.options.getSubcommand() === 'train'){
             // create chat log
-            const history = interaction.options.getNumber('history') ?? 100; // default 100 messages
-            if(!interaction.options.getChannel('channel') == null){
-                const channel = interaction.options.getChannel('channel'); // use specific channel
-                await interaction.reply(channel);
+            let history = interaction.options.getInteger('history') ?? 100; // default 100 messages
+            message = message.concat(`\nhistory: ${history}`);
+            let channel = interaction.options.getChannel('channel'); // use specific channel
+            if(channel){
+                message = message.concat(`\nchannel: ${channel.name}`);
             }else{
                 // get all channels
-                const channels = interaction.guild.channels.fetch();
+                let channels = interaction.guild.channels.cache;
                 // get text channels
                 channels = channels.map((c) => c.type === "GUILD_TEXT");
+                message = message.concat(`\nchannels:`);
                 for(c in channels){
-                    await interaction.reply(channels);
+                    message = message.concat(`${c.name}\t`);
                 }
             }
             
         }
 
+        await interaction.reply(message);
         
     }
 };
