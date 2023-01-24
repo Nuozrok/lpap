@@ -20,6 +20,7 @@ const { SlashCommandBuilder, InteractionResponse, Collection, ChannelType } = re
 
 // npm install @tensorflow/tfjs
 const tf = require('@tensorflow/tfjs');
+const { filter } = require("lodash");
 
 // command
 module.exports = {
@@ -92,14 +93,10 @@ module.exports = {
             if(channel){
                 message = message.concat(`\nchannel: ${channel.name}`);
             }else{
-                // get all channels
-                let channels = interaction.guild.channels.cache;
-                // get text channels
-                channels = channels.map((c) => c.type === "GUILD_TEXT");
-                message = message.concat(`\nchannels:`);
-                for(c in channels){
-                    message = message.concat(`${c.name}\t`);
-                }
+                // get all text channels
+                let channels = interaction.guild.channels.cache.filter((c) => c.type === 0)
+                message = message.concat(`\nchannels: `);
+                channels.forEach((channel) => {message = message.concat(`${channel.name}\t`)} ); // iterating through Collections is weird
             }
             
         }
