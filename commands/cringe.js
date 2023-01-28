@@ -122,10 +122,10 @@ module.exports = {
                     components: [row1,row2],
                     ephemeral: false
                  })
-                 // collect responses from menu and buttons (15 seconds to respond)
+                 // collect responses from menu and buttons (30 seconds to respond)
                 .then(message => {
-                    menuCollector=message.createMessageComponentCollector({componentType: ComponentType.ChannelSelect, time: 15000});
-                    buttonCollector=message.createMessageComponentCollector({componentType: ComponentType.Button, time: 15000});
+                    menuCollector=message.createMessageComponentCollector({componentType: ComponentType.ChannelSelect, time: 30000});
+                    buttonCollector=message.createMessageComponentCollector({componentType: ComponentType.Button, time: 30000});
                 })
                 .catch(console.error);
 
@@ -197,8 +197,6 @@ module.exports = {
                     }catch(error){
                         console.log(error); // this will never happen
                     }
-
-                    
                 }
             });
 
@@ -242,7 +240,7 @@ async function generateChatlog(length, channels, condition){
         await fetchManyMessages(length, channel, condition))
     ));
     buffer.forEach(c => collection = collection.concat(c));
-    
+
     // sort by date
     collection = collection.sort((a, b) => b.createdAt - a.createdAt);
     console.log('messages sorted');
