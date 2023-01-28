@@ -6,3 +6,4 @@ package-lock.json
 config.json
 # chatlogs for training recurrent neural network
 tf/*.log
+.DS_Store
