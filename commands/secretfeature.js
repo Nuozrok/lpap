@@ -23,37 +23,30 @@ module.exports = {
 		// call the opendota api and retrieve a message similar to the one in data/examplepangotestdurations.json folder
 
 		var url = "https://api.opendota.com/api/heroes/" + interaction.options.getString('hero') + "/durations";
-
 		var xhr = new XMLHttpRequest();
-		var herodata = {};
-		xhr.open("GET", url);
-
-		xhr.onreadystatechange = function () {
-			if (xhr.readyState === 4) {
-				console.log(xhr.status);
-				console.log(xhr.responseText);
-				console.log(typeof(xhr.responseText));
-				herodata = JSON.parse(xhr.responseText);
-			}
-		};
-
-		xhr.send();
-				
-		// process the response
-
-		// create actual embedder
-		const embedder = new EmbedBuilder()
+		var embedder = new EmbedBuilder()
 			.setColor(0x0099FF)
 			.setTitle('Duration vs Winrate check')
 			.setAuthor({ name: interaction.user.username, iconURL: interaction.user.avatarURL() })
 			.setDescription('based on pro matches duration data for your given hero from opendotaapi')
 			.addFields({ name: 'Hero ID:', value: interaction.options.getString('hero') })
-			//.addFields({name: 'matches > 5700 seconds:', value: xhr.responseText, inline:true})
 			.setImage('https://www.clipartmax.com/middle/m2K9A0d3d3K9i8A0_simple-red-x-mark-free-clip-art-clipart-red-x-mark-transparent/#.Y9IRBXdDRBc.link')
 			.setTimestamp()
 
+		waitTilrequestDone = function () {
+			return xhr.readyState;
+        }
 
+		xhr.open("GET", url, false);
+		await xhr.send();
 
-		await interaction.editReply({ content: 'not a soup', embeds: [embedder] });
+		console.log(xhr.status);
+		console.log(xhr.responseText);
+		console.log(typeof (xhr.responseText));
+		herodata = JSON.parse(xhr.responseText);
+		embedder = embedder.addFields({ name: 'matches > 5700 seconds:', value: herodata[0].toString() });
+		console.log('embedding...');
+		await interaction.editReply({ embeds: [embedder] });
+
 	},
 };
