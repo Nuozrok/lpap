@@ -12,7 +12,7 @@ jobs:
     - name: SSH
       uses: appleboy/ssh-action@v.0.1.8
       with:
-        host: ${{ secret.HOST }}
+        host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
         password: ${{ secrets.PASSWORD }}
         script: |
