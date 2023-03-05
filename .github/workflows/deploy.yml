@@ -12,9 +12,9 @@ jobs:
     - name: SSH
       uses: appleboy/ssh-action@v0.1.8
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        password: ${{ secrets.PASSWORD }}
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USER }}
+        PASSWORD: ${{ secrets.PASSWORD }}
         script: |
           cd ~/lpap
           git checkout main
