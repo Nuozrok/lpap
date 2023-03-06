@@ -1,0 +1,1 @@
+// stop playing music and clear the queue
