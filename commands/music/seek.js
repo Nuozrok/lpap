@@ -1,4 +1,5 @@
 // skip to a particular time in the song
+const { SlashCommandBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -30,6 +31,9 @@ module.exports = {
                 .setRequired(true)
         ),
     async execute(interaction){
+         // log interaction
+         console.log(`${interaction.user.username} is using the seek command`);
+
         // make sure to convert hours+minutes (if selected) to seconds before passing to distube
 
     }

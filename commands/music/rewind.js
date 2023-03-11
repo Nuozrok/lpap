@@ -1,4 +1,5 @@
 // skip backward in the playing song
+const { SlashCommandBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,8 +11,11 @@ module.exports = {
                 .setName('duration')
                 .setDescription('How many seconds to skip backward.')
                 .setMinValue(1)
+                .setRequired(True)
         ),
     async execute(interaction){
-        
+         // log interaction
+         console.log(`${interaction.user.username} is using the rewind command`);
+
     }
 }
