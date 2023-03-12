@@ -23,83 +23,88 @@ const distube = new DisTube(client, {
     nsfw: true, // smut?
 });
 
-// Queue status template
-const status = queue =>
-`Volume: \`${queue.volume}%\` | Filter: \`${
-    queue.filters.join(', ') || 'Off'
-}\` | Loop: \`${
-    queue.repeatMode
-        ? queue.repeatMode === 2
-            ? 'All Queue'
-            : 'This Song'
-        : 'Off'
-}\` | Autoplay: \`${queue.autoplay ? 'On' : 'Off'}\``;
-
 // DisTube Event Listeners
 distube
-	.on('playSong', (queue, song) =>
-		queue.textChannel?.send(
-			`Playing \`${song.name}\` - \`${
-				song.formattedDuration
-			}\`\nRequested by: ${song.user}\n${status(queue)}`,
-		),
-	)
-	.on('addSong', (queue, song) =>
-		queue.textChannel?.send(
-			`Added ${song.name} - \`${song.formattedDuration}\` to the queue by ${song.user}`,
-		),
-	)
-	.on('addList', (queue, playlist) =>
-		queue.textChannel?.send(
-			`Added \`${playlist.name}\` playlist (${
-				playlist.songs.length
-			} songs) to queue\n${status(queue)}`,
-		),
-	)
+	.on('playSong', (queue, song) => {
+        const embed = new EmbedBuilder()
+            .setColor(0x5499A6)
+            .setTitle('Now playing')
+            .addFields((
+                {
+                    name: '\u200b',
+                    value: `[${song.name}](${song.url})`,
+                    inline: true
+                },
+                {
+                    name: '\u200b',
+                    value: `${song.formattedDuration}`,
+                    inline: true
+                },
+                {
+                    name: '\u200b',
+                    value: `Added by <@${song.member.id}>`,
+                    inline: true
+                }
+            ))
+            .setThumbnail(song.thumbnail);
+		queue.textChannel?.send({ embeds: [embed] });
+    })
+	.on('addSong', (queue, song) => {
+        const embed = new EmbedBuilder()
+            .setColor(0x4A9931)
+            .setTitle('Queued')
+            .addFields((
+                {
+                    name: '\u200b',
+                    value: `[${song.name}](${song.url})`,
+                    inline: true
+                },
+                {
+                    name: '\u200b',
+                    value: `${song.formattedDuration}`,
+                    inline: true
+                },
+                {
+                    name: '\u200b',
+                    value: `Added by <@${song.member.id}>`,
+                    inline: true
+                }
+            ))
+            .setThumbnail(song.thumbnail)
+            .setFooter({ text: `In position ${queue.songs.indexOf(song)}`});
+		queue.textChannel?.send({ embeds: [embed] });
+    })
+	.on('addList', (queue, playlist) => {
+        const embed = new EmbedBuilder()
+            .setColor(0x4A9931)
+            .setTitle('Queued')
+            .setDescription(`Added to ${playlist.name} (${playlist.songs.length} songs) to the queue.`);
+
+        queue.textChannel?.send({ embeds: [embed] });
+    })
 	.on('error', (textChannel, e) => {
+
+        const embed = new EmbedBuilder()
+            .setColor(0xE4344C)
+            .setTitle('Error')
+            .setDescription(`${e.message.slice(0, 2000)}`);
+
+        textChannel.send({ embeds: [embed] });
 		console.error(e);
-		textChannel.send(
-			`An error encountered: ${e.message.slice(0, 2000)}`,
-		);
 	})
-	.on('finish', queue => queue.textChannel?.send('Finish queue!'))
-	.on('finishSong', queue =>
-		queue.textChannel?.send('Finish song!'),
-	)
-	.on('disconnect', queue =>
-		queue.textChannel?.send('Disconnected!'),
-	)
-	.on('empty', queue =>
-		queue.textChannel?.send(
-			'The voice channel is empty! Leaving the voice channel...',
-		),
-	)
-	// DisTubeOptions.searchSongs > 1
-	.on('searchResult', (message, result) => {
-		let i = 0;
-		message.channel.send(
-			`**Choose an option from below**\n${result
-				.map(
-					song =>
-						`**${++i}**. ${song.name} - \`${
-							song.formattedDuration
-						}\``,
-				)
-				.join(
-					'\n',
-				)}\n*Enter anything else or wait 30 seconds to cancel*`,
-		);
-	})
-	.on('searchCancel', message =>
-		message.channel.send('Searching canceled'),
-	)
-	.on('searchInvalidAnswer', message =>
-		message.channel.send('Invalid number of result.'),
-	)
-	.on('searchNoResult', message =>
-		message.channel.send('No result found!'),
-	)
-	.on('searchDone', () => {});
+	.on('finish', queue => queue.textChannel?.send('Queue finished!'))
+	//.on('finishSong', queue =>{});
+	.on('disconnect', queue => {
+		queue.textChannel?.send('👋 Disconnecting!');
+    })
+	.on('empty', queue => {
+		queue.textChannel?.send('👀 Where did everybody go?');
+    });
+	//.on('searchResult', (message, result) => {})
+	//.on('searchCancel', message => {});
+	//.on('searchInvalidAnswer', message => {});
+	//.on('searchNoResult', message => {});
+	//.on('searchDone', () => {});
     //.on('deleteQueue', () => {});
     //.on('initQueue', () => {});
     //.on('noRelated', () => {});

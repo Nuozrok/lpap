@@ -1,6 +1,6 @@
 // play audio
 
-const { SlashCommandBuilder} = require("discord.js");
+const { SlashCommandBuilder, StringSelectMenuBuilder, ComponentType} = require("discord.js");
 const { getVoiceConnection, getVoiceConnections } = require("@discordjs/voice");
 const path = require('node:path');
 
@@ -18,11 +18,11 @@ module.exports = {
             option
                 .setName('query')
                 .setDescription('Search query')
-                .setRequired(false))
-        .addAttachmentOption(option => option
+                .setRequired(false)),
+        /*.addAttachmentOption(option => option
             .setName('file')
             .setDescription('Audio file')
-            .setRequired(false)),
+            .setRequired(false)),*/
     async execute(interaction){
         // log interaction
         console.log(`${interaction.user.username} is using the play command`);
@@ -71,11 +71,183 @@ module.exports = {
         }
         */
 
-        // play audio
-        await client.player.play(interaction.member.voice.channel, interaction.options.getString('query'), {
-            textChannel: interaction.channel, 
-            member: interaction.member
-        });
+        let query = interaction.options.getString('query');
+        // if the query does not resolve to a URL, try searching
+        if(!isURL(query)){
+            let results = await client.player.search(query);
 
+            // prompt user to refine search query
+            let i = 0;
+            const embed = new EmbedBuilder()
+                .setColor(0xABABAB)
+                .setTitle('Refine search')
+                .setDescription('Select one of the options below. Search is cancelled after 30 seconds')
+                .addFields(songs.map(s => (
+                    {
+                        name: '\u200b',
+                        value: `${++i}`,
+                        inline: true
+                    },
+                    {
+                        name: '\u200b',
+                        value: `[${s.name}](${s.url})`,
+                        inline: true
+                    },
+                    {
+                        name: '\u200b',
+                        value: `${s.formattedDuration}`,
+                        inline: true
+                    },
+                    {
+                        name: '\u200b',
+                        value: `views: ${s.views}`,
+                        inline: true
+                    },
+                    {
+                        name: '\u200b',
+                        value: '\u200b',
+                        inline: false
+                    }
+                )));
+            // build buttons
+            let j=0;
+            const row = new ActionRowBuilder()
+            .addComponents(
+                new StringSelectMenuBuilder()
+                    .setCustomId('select')
+                    .setPlaceholder('Nothing selected')
+                    .addOptions([results.map(r => (
+						{
+							label: `${++j}`,
+							description: `${r.name}`,
+							value: r.url,
+						}   
+                    ))]),
+                new ButtonBuilder()
+                    .setCustomId('search')
+                    .setLabel('Search')
+                    .setEmoji('🔎')
+                    .setStyle(ButtonStyle.Success)
+                    .setDisabled(true),
+                new ButtonBuilder()
+                    .setCustomId('cancel')
+                    .setLabel('Cancel')
+                    .setEmoji('🚫')
+                    .setStyle(ButtonStyle.Danger),
+            );
+            let menuCollector;
+            let buttonCollector;
+            // wait for user to select result
+            await interaction
+            .reply({ 
+                embeds: [embed], 
+                components: [row],
+                ephemeral: true
+            })
+            .then(message => {
+                menuCollector = message.createMessageComponentCollector({componentType: ComponentType.StringSelect, time: 30000});
+                buttonCollector = message.createMessageComponentCollector({componentType: ComponentType.Button, time: 30000});
+            })
+            .catch(console.error);
+            // menu collects interaction
+            menuCollector.on('collect', i=>{
+                // enable search button
+                row2.components[1].setDisabled(false);
+                
+                // update query to a url
+                query = i.values[0];
+             });
+
+            // button collects interaction
+            buttonCollector.on('collect', async i=>{
+                menuCollector.stop();
+                buttonCollector.stop();
+                try{
+                    // if cancelled
+                    if(i.customId === 'cancel'){
+                        await i.update({
+                            content: 'Search cancelled!',
+                            embeds: [], 
+                            components: [],
+                            ephemeral: true
+                        });
+                    }else if (i.customId === 'search'){
+                        // delete reply - bot will automatically say a song has been added
+                        await i.deleteReply();
+
+                        // connect if not already connected
+                        if(!getVoiceConnections){
+                            client.player.voices.join(interaction.member.voice.channel);
+                        }
+
+                        // play audio
+                        await client.player.play(interaction.member.voice.channel, query, {
+                            textChannel: interaction.channel, 
+                            member: interaction.member
+                        });
+                    }
+                }catch(error){
+                    console.log(error);
+                }
+        
+            });
+
+            // menu interaction ends
+            menuCollector.on('end', (collected, reason)=>{
+                // if no selection
+                if(reason === 'time'){
+                    // update reply
+                    interaction.editReply({
+                        content: `Request timed out.`,
+                        embeds: [],
+                        components: []
+                    }).then(console.log('command timed out')).catch(console.error);
+                }
+            });
+
+            // button interaction ends
+            buttonCollector.on('end', (collected, reason)=>{
+                // if no selection
+                if(reason === 'time'){
+                    // update reply
+                    interaction.editReply({
+                        content: `Request timed out.`,
+                        embeds: [],
+                        components: []
+                    }).then(console.log('command timed out')).catch(console.error);
+                }
+            });
+            
+        // else original query was a URL
+        }else{
+            // connect if not already connected
+            if(!getVoiceConnections){
+                client.player.voices.join(interaction.member.voice.channel);
+            }
+
+            // play audio
+            await client.player.play(interaction.member.voice.channel, query, {
+                textChannel: interaction.channel, 
+                member: interaction.member
+            });
+        }
     }
 };
+
+/**
+ * Check if the string is an URL
+ * @param {string} string input to validate as url
+ * @returns {boolean} 
+ * Only identifies http https as valid protocols
+ * Shouldn't be an issue, right?
+ */
+ function isURL(string) {
+    let url;
+    try {
+        url = new URL(string);
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+    return url.protocol === "http:" || url.protocol === "https:";
+  }

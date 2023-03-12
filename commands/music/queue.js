@@ -12,6 +12,26 @@ module.exports = {
          // log interaction
          console.log(`${interaction.user.username} is using the queue command`);
 
+        // make sure user is in a voice channel
+        if(!interaction.member.voice.channel){
+            let snark = ['You must be in a voice channel to play something, you silly little troll, you.',
+                        'Hey bud. Join a voice channel first, mkay?',
+                        'Thats a good one. Too bad I\'m not gonna play it unless you first join a voice channel.',
+                        'Your plea falls on deaf ears, my friend. Mayhaps if you joined a voice channel, someone could listen.'];
+            let randomSnark = snark[Math.floor(Math.random() * snark.length)];
+            await interaction.reply({content: randomSnark, ephemeral : true});
+        }
+
+        // make sure user is in the same voice channel as the bot if the bot is already playing
+        if(getVoiceConnections && !getVoiceConnection(interaction.member.voice.channel)){
+            let snark = ['I can\'t be in two places at once. Either come join me in another channel, or make me leave.',
+                        'We have to be in the same voice channel. Which is it gonna be?',
+                        'I can\'t hear you over the music I\'m alread blasting in this other, better voice channel.',
+                        'Thank you, Mario, but your bot is in another channel!'];
+            let randomSnark = snark[Math.floor(Math.random() * snark.length)];
+            await interaction.reply({content: randomSnark, ephemeral : true});
+        }
+
         // make sure there is a queue
         let queue = client.player.getQueue(process.env.GUILD_ID);
         if(!queue){
@@ -22,6 +42,7 @@ module.exports = {
             let randomSnark = snark[Math.floor(Math.random() * snark.length)];
             await interaction.reply({content: randomSnark, ephemeral : true});
         }
+        
         // build embed
         let currentPage = 0;
         let songsPerPage = 10;
@@ -136,11 +157,61 @@ module.exports = {
  * @returns {<EmbedBuilder>}
  */
  const generateEmbed = (queue, page, songsPerPage) => {
-    const songs = queue.songs.slice(page*songsPerPage,songsPerPage);
+    const songs = queue.songs.slice(page*songsPerPage+1,songsPerPage+1);
+    let loopEmoji = '';
+    switch(queue.repeatMode){
+        case 0:
+            loopEmoji = '❌';
+            break;
+        case 1:
+            loopEmoji = '🔂';
+            break;
+        case 2:
+            loopEmoji = '🔁';
+            break;
+    }
+    let playerEmoji = '';
+    if(queue.paused){
+        playerEmoji = '⏸️'
+    }else{
+        playerEmoji = '▶️';
+    }
     return new EmbedBuilder()
         .setColor(0xABABAB)
         .setTitle('Music Queue')
+        .addFields((
+            {
+                name: 'Now Playing:',
+                value: '\u200b',
+                inline: true
+            },
+            {
+                name: '\u200b',
+                value: `[${queue.songs[0].name}](${queue.songs[0].url})`,
+                inline: true
+            },
+            {
+                name: '\u200b',
+                value: `${queue.songs[0].formattedDuration}`,
+                inline: true
+            },
+            {
+                name: '\u200b',
+                value: `Added by <@${queue.songs[0].member.id}>`,
+                inline: true
+            },
+            {
+                name: '\u200b',
+                value: '\u200b',
+                inline: false
+            }
+        ))
         .addFields(songs.map(s => (
+            {
+                name: 'Next',
+                value: `${songs.indexOf(s)}`,
+                inline: true
+            },
             {
                 name: '\u200b',
                 value: `[${s.name}](${s.url})`,
@@ -153,7 +224,7 @@ module.exports = {
             },
             {
                 name: '\u200b',
-                value: `Added by <@${s.id}>`,
+                value: `Added by <@${s.member.id}>`,
                 inline: true
             },
             {
@@ -162,6 +233,9 @@ module.exports = {
                 inline: false
             }
         )))
+        .addFields({ name: 'Queue length', value: queue.formattedDuration, inline: false })
+        .addFields({ name: 'Loop mode', value: loopEmoji, inline: false })
+        .addFields({ name: 'Player status', value: playerEmoji, inline: false })
         .setFooter( {text: `Page ${page} of ${Math.ceil(queue.length/songsPerPage)}`});
     
 }
