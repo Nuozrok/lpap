@@ -109,4 +109,5 @@ module.exports.makePlayer = function (client){
         //.on('deleteQueue', () => {});
         //.on('initQueue', () => {});
         //.on('noRelated', () => {});
+    return distube;
 }

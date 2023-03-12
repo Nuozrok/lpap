@@ -25,10 +25,10 @@ const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'
 
 const configPath = path.join(__dirname, 'config');
 
-const { makePlayer } = require(path.join(configPath, 'playercfg.js'));
+const playercfg = require(path.join(configPath, 'playercfg.js'));
 
 // create music player
-client.player = makePlayer(client);
+client.player = playercfg.makePlayer(client);
 
 // read through all the files and add them to a discord.js collection object
 client.commands = new Collection();
@@ -52,7 +52,5 @@ for (const file of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args));
 	}
 }
-console.log(client.commands);
-client.login(process.env.DISCORD_TOKEN);
 
-module.exports = { client };
+client.login(process.env.DISCORD_TOKEN);
