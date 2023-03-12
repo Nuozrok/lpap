@@ -1,7 +1,6 @@
 // leave the voice channel
 const { getVoiceConnections } = require("@discordjs/voice");
 const { SlashCommandBuilder} = require("discord.js");
-const { client } = require("../..");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -42,6 +41,6 @@ module.exports = {
             await interaction.reply({content: randomSnark, ephemeral : true});
         }
 
-        client.player.voices.leave(interaction.member);
+        interaction.client.player.voices.leave(interaction.member);
     }
 }

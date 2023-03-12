@@ -33,7 +33,7 @@ module.exports = {
         }
 
         // make sure there is a queue
-        let queue = client.player.getQueue(process.env.GUILD_ID);
+        let queue = interaction.client.player.getQueue(process.env.GUILD_ID);
         if(!queue){
             let snark = ['Nothing is in the queue, my guy.',
                         'Here is where I would list all songs in the queue - if I had any.',

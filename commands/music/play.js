@@ -2,10 +2,6 @@
 
 const { SlashCommandBuilder, StringSelectMenuBuilder, ComponentType} = require("discord.js");
 const { getVoiceConnection, getVoiceConnections } = require("@discordjs/voice");
-const path = require('node:path');
-
-const indexPath = path.join(__dirname, '../../index.js');
-const { client } = require(indexPath);
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -74,7 +70,7 @@ module.exports = {
         let query = interaction.options.getString('query');
         // if the query does not resolve to a URL, try searching
         if(!isURL(query)){
-            let results = await client.player.search(query);
+            let results = await interaction.client.player.search(query);
 
             // prompt user to refine search query
             let i = 0;
@@ -177,11 +173,11 @@ module.exports = {
 
                         // connect if not already connected
                         if(!getVoiceConnections){
-                            client.player.voices.join(interaction.member.voice.channel);
+                            interaction.client.player.voices.join(interaction.member.voice.channel);
                         }
 
                         // play audio
-                        await client.player.play(interaction.member.voice.channel, query, {
+                        await interaction.client.player.play(interaction.member.voice.channel, query, {
                             textChannel: interaction.channel, 
                             member: interaction.member
                         });
@@ -222,11 +218,11 @@ module.exports = {
         }else{
             // connect if not already connected
             if(!getVoiceConnections){
-                client.player.voices.join(interaction.member.voice.channel);
+                interaction.client.player.voices.join(interaction.member.voice.channel);
             }
 
             // play audio
-            await client.player.play(interaction.member.voice.channel, query, {
+            await interaction.client.player.play(interaction.member.voice.channel, query, {
                 textChannel: interaction.channel, 
                 member: interaction.member
             });

@@ -11,7 +11,7 @@ module.exports = {
                 .setName('duration')
                 .setDescription('How many seconds to skip forward.')
                 .setMinValue(1)
-                .setRequired(True)
+                .setRequired(true)
         ),
     async execute(interaction){
         // log interaction
@@ -38,7 +38,7 @@ module.exports = {
         }
 
         // make sure there is a queue
-        let queue = client.player.getQueue(process.env.GUILD_ID);
+        let queue = interaction.client.player.getQueue(process.env.GUILD_ID);
         if(!queue){
             let snark = ['Nothing is playing, my guy.',
                         'What am I supposed to do with this? There\'s no song playing.',
