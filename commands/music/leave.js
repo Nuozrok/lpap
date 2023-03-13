@@ -10,8 +10,8 @@ module.exports = {
         // log interaction
         console.log(`${interaction.user.username} is using the leave command`);
 
-        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channelId;
-        const voiceChannel = interaction.member?.voice?.channelId;
+        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channel;
+        const voiceChannel = interaction.member?.voice?.channel;
 
         // make sure bot is connected to a voice channel
         if(!botVoiceChannel){

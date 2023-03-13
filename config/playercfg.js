@@ -1,4 +1,7 @@
 // music player
+
+const { EmbedBuilder} = require("discord.js");
+
 const { DisTube } = require('distube');
 const { YtDlpPlugin } = require("@distube/yt-dlp");
 const { SoundCloudPlugin } = require('@distube/soundcloud');
@@ -29,7 +32,7 @@ module.exports.makePlayer = function (client){
         .on('playSong', (queue, song) => {
             const embed = new EmbedBuilder()
                 .setColor(0x5499A6)
-                .setTitle('Now playing')
+                .setTitle('Now Playing')
                 .addFields((
                     {
                         name: '\u200b',

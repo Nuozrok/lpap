@@ -9,7 +9,7 @@ module.exports = {
         .addStringOption(option=>
             option
                 .setName('query')
-                .setDescription('Search query')
+                .setDescription('Video link or search query')
                 .setRequired(true)),
         /*.addAttachmentOption(option => option
             .setName('file')
@@ -19,8 +19,8 @@ module.exports = {
         // log interaction
         console.log(`${interaction.user.username} is using the play command`);
 
-        const voiceChannel = interaction.member?.voice?.channelId;
-        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channelId;
+        const voiceChannel = interaction.member?.voice?.channel;
+        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channel;
         
         // make sure user is in a voice channel
         if(!voiceChannel){
@@ -74,38 +74,18 @@ module.exports = {
                 let i = 0;
                 const embed = new EmbedBuilder()
                     .setColor(0xABABAB)
-                    .setTitle('Refine search')
-                    .setDescription('Select one of the options below. Search is cancelled after 30 seconds')
+                    .setTitle('Refine Search')
+                    .setDescription('Select one of the options below. Search is cancelled after 30 seconds.')
                     .addFields(results.map(s => (
                         {
                             name: '\u200b',
-                            value: `${++i}`,
-                            inline: true
-                        },
-                        {
-                            name: '\u200b',
-                            value: `[${s.name}](${s.url})`,
-                            inline: true
-                        },
-                        {
-                            name: '\u200b',
-                            value: `${s.formattedDuration}`,
-                            inline: true
-                        },
-                        {
-                            name: '\u200b',
-                            value: `views: ${s.views}`,
-                            inline: true
-                        },
-                        {
-                            name: '\u200b',
-                            value: '\u200b',
+                            value: `${++i} \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t ${s.views} views`,
                             inline: false
                         }
                     )));
                 // build buttons
                 let j=0;
-                const row = new ActionRowBuilder()
+                const row1 = new ActionRowBuilder()
                 .addComponents(
                     new StringSelectMenuBuilder()
                         .setCustomId('select')
@@ -116,7 +96,9 @@ module.exports = {
                                 description: `${s.name}`,
                                 value: s.url,
                             }   
-                        ))),
+                        ))));
+                const row2 = new ActionRowBuilder()
+                .addComponents(
                     new ButtonBuilder()
                         .setCustomId('search')
                         .setLabel('Search')
@@ -126,7 +108,7 @@ module.exports = {
                     new ButtonBuilder()
                         .setCustomId('cancel')
                         .setLabel('Cancel')
-                        .setEmoji('🚫')
+                        .setEmoji('⏏️')
                         .setStyle(ButtonStyle.Danger),
                 );
                 let menuCollector;
@@ -135,7 +117,7 @@ module.exports = {
                 await interaction
                 .reply({ 
                     embeds: [embed], 
-                    components: [row],
+                    components: [row1, row2],
                     ephemeral: true
                 })
                 .then(message => {
@@ -144,10 +126,20 @@ module.exports = {
                 })
                 .catch(console.error);
                 // menu collects interaction
-                menuCollector.on('collect', i=>{
+                menuCollector.on('collect', async i=>{
                     // enable search button
-                    row2.components[1].setDisabled(false);
-                    
+                    row2.components[0].setDisabled(false);
+
+                    // update value in box
+                    row1.components[0].setPlaceholder(`${results.findIndex(song => song.url == i.values[0])+1}`);
+
+                    // update message 
+                    await i.update({
+                        embeds: [embed], 
+                        components: [row1, row2],
+                        ephemeral: true
+                    });
+
                     // update query to a url
                     query = i.values[0];
                 });
@@ -166,15 +158,29 @@ module.exports = {
                                 ephemeral: true
                             });
                         }else if (i.customId === 'search'){
-                            // delete reply - bot will automatically say a song has been added
-                            await i.deleteReply();
 
-                            // connect if not already connected
-                            if(!botVoiceChannel){
-                                interaction.client.player.voices.join(voiceChannel);
-                            }
+                            let r = results.findIndex(song => song.url == query);
 
-                            // play audio
+                            // edit reply
+                            await i.update({
+                                embeds: [
+                                    new EmbedBuilder()
+                                        .setColor(0xABABAB)
+                                        .setTitle('Refine Search')
+                                        .addFields(
+                                            {
+                                                name: 'You selected:',
+                                                value: `${r+1} \t [${results[r].name}](${query})`
+                                                + `\n ${results[r].formattedDuration}, \t ${results[r].views} views`, 
+                                                inline: false
+                                            }
+                                        )
+                                ],
+                                components: [],
+                                ephemeral: true
+                            });
+
+                            // play audio - bot will automatically check if it needs to connect
                             await interaction.client.player.play(voiceChannel, query, {
                                 textChannel: interaction.channel, 
                                 member: interaction.member
@@ -214,12 +220,7 @@ module.exports = {
                 
             // else original query was a URL
             }else{
-                // connect if not already connected
-                if(!botVoiceChannel){
-                    interaction.client.player.voices.join(voiceChannel);
-                }
-
-                // play audio
+                // play audio - bot will automatically check if it needs to connect
                 await interaction.client.player.play(voiceChannel, query, {
                     textChannel: interaction.channel, 
                     member: interaction.member

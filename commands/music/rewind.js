@@ -17,8 +17,8 @@ module.exports = {
         // log interaction
         console.log(`${interaction.user.username} is using the rewind command`);
 
-        const voiceChannel = interaction.member?.voice?.channelId;
-        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channelId;
+        const voiceChannel = interaction.member?.voice?.channel;
+        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channel;
         let queue = interaction.client.player.getQueue(process.env.GUILD_ID);
 
         // make sure user is in a voice channel

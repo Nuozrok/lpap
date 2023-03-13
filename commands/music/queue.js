@@ -11,8 +11,8 @@ module.exports = {
          // log interaction
          console.log(`${interaction.user.username} is using the queue command`);
 
-        const voiceChannel = interaction.member?.voice?.channelId;
-        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channelId;
+        const voiceChannel = interaction.member?.voice?.channel;
+        const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channel;
         let queue = interaction.client.player.getQueue(process.env.GUILD_ID);
 
         // make sure user is in a voice channel
@@ -183,54 +183,14 @@ module.exports = {
         .addFields((
             {
                 name: 'Now Playing:',
-                value: '\u200b',
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `[${queue.songs[0].name}](${queue.songs[0].url})`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `${queue.songs[0].formattedDuration}`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `Added by <@${queue.songs[0].member.id}>`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: '\u200b',
+                value: `[${queue.songs[0].name}](${queue.songs[0].url}) \n ${queue.songs[0].formattedDuration}, \t Added by <@${queue.songs[0].member.id}>`,
                 inline: false
             }
         ))
         .addFields(songs.map(s => (
             {
                 name: 'Next',
-                value: `${songs.indexOf(s)}`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `[${s.name}](${s.url})`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `${s.formattedDuration}`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: `Added by <@${s.member.id}>`,
-                inline: true
-            },
-            {
-                name: '\u200b',
-                value: '\u200b',
+                value: `${songs.indexOf(s)} \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t Added by <@${s.member.id}>`,
                 inline: false
             }
         )))
