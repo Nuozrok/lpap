@@ -4,6 +4,11 @@
   "description": "lpap.app in development",
   "main": "index.js",
   "dependencies": {
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/voice": "^0.15.0",
+    "@distube/soundcloud": "^1.3.0",
+    "@distube/spotify": "^1.5.1",
+    "@distube/yt-dlp": "^1.1.3",
     "abbrev": "^1.1.1",
     "accepts": "^1.3.8",
     "anymatch": "^3.1.3",
@@ -26,7 +31,8 @@
     "destroy": "^1.2.0",
     "discord-api-types": "^0.37.28",
     "discord-interactions": "^3.2.0",
-    "discord.js": "^14.7.1",
+    "discord.js": "^14.8.0",
+    "distube": "^4.0.3",
     "dotenv": "^16.0.3",
     "ee-first": "^1.1.1",
     "encodeurl": "^1.0.2",
@@ -35,6 +41,7 @@
     "express": "^4.18.2",
     "fast-deep-equal": "^3.1.3",
     "fetch-blob": "^3.2.0",
+    "ffmpeg-static": "^5.1.0",
     "file-type": "^18.2.0",
     "fill-range": "^7.0.1",
     "finalhandler": "^1.2.0",
@@ -57,6 +64,7 @@
     "is-extglob": "^2.1.1",
     "is-glob": "^4.0.3",
     "is-number": "^7.0.0",
+    "libsodium-wrappers": "^0.7.11",
     "lodash": "^4.17.21",
     "lodash.snakecase": "^4.1.1",
     "media-typer": "^0.3.0",
@@ -93,6 +101,7 @@
     "setprototypeof": "^1.2.0",
     "side-channel": "^1.0.4",
     "simple-update-notifier": "^1.1.0",
+    "sodium": "^3.0.2",
     "statuses": "^2.0.1",
     "streamsearch": "^1.1.0",
     "string_decoder": "^1.3.0",
@@ -113,7 +122,8 @@
     "utils-merge": "^1.0.1",
     "vary": "^1.1.2",
     "web-streams-polyfill": "^3.2.1",
-    "ws": "^8.12.0"
+    "ws": "^8.12.0",
+    "ytdl-core": "^4.11.2"
   },
   "scripts": {
     "test": "echo \"No tests yet, maybe we should make one...\""
@@ -130,4 +140,3 @@
   },
   "homepage": "https://github.com/Nuozrok/lpap#readme"
 }
-
