@@ -85,6 +85,7 @@
     "path-to-regexp": "^0.1.7",
     "peek-readable": "^5.0.0",
     "picomatch": "^2.3.1",
+    "pm2": "^5.2.2",
     "proxy-addr": "^2.0.7",
     "pstree.remy": "^1.1.8",
     "qs": "^6.11.0",
