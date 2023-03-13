@@ -19,10 +19,11 @@ jobs:
           export NVM_DIR=~/.nvm
           source ~/.nvm/nvm.sh
           cd ~/lpap
+          pm2 stop lpap-bot
           git checkout main
           git pull
           npm install
-          pm2 stop lpap-bot
+          node deploy-commands.js
           pm2 start index.js --name lpap-bot
 
 
