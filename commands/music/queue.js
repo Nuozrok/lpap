@@ -44,8 +44,8 @@ module.exports = {
         }else{
             
             // build embed
-            let currentPage = 0;
-            let songsPerPage = 10;
+            let currentPage = 1;
+            const songsPerPage = 10;
             let embed = generateEmbed(queue, currentPage, songsPerPage);
 
             // build buttons
@@ -61,7 +61,8 @@ module.exports = {
                         .setCustomId('back')
                         .setLabel('Back')
                         .setEmoji('⏪')
-                        .setStyle(ButtonStyle.Secondary),
+                        .setStyle(ButtonStyle.Secondary)
+                        .setDisabled(true),
                     new ButtonBuilder()
                         .setCustomId('next')
                         .setLabel('Next')
@@ -75,10 +76,11 @@ module.exports = {
                 );        
 
             // reply to interaction
+            component = queue.songs.length > songsPerPage ? [row] : [];  // do not need buttons if there is one page
             await interaction
                 .reply({ 
                     embeds: [embed], 
-                    components: [queue.songs.length > songsPerPage ? row : null] // do not need buttons if there is one page
+                    components: component
                 })
                 .then(message => {
                     buttonCollector = message.createMessageComponentCollector({componentType: ComponentType.Button});
@@ -86,63 +88,49 @@ module.exports = {
                 .catch(console.error);
             
             // button collects interaction
-            buttonCollector.on('collect', i=>{
+            buttonCollector.on('collect', async i=>{
                 try{
                     switch(i.customId){
                         case 'first':
-                            currentPage = 0;
+                            currentPage = 1;
                             row.components[0].setDisabled(true);
                             row.components[1].setDisabled(true);
-                            if(row.components[2].disabled){
-                                row.components[2].setDisabled(false);
-                            }
-                            if(row.components[3].disabled){
-                                row.components[3].setDisabled(false);
-                            }
+                            row.components[2].setDisabled(false);
+                            row.components[3].setDisabled(false);
                             break;
                         case 'back':
                             currentPage--;
-                            if(currentPage == 0){
+                            if(currentPage == 1 ){
                                 row.components[0].setDisabled(true);
                                 row.components[1].setDisabled(true);
                             }
-                            if(row.components[2].disabled){
-                                row.components[2].setDisabled(false);
-                            }
-                            if(row.components[3].disabled){
-                                row.components[3].setDisabled(false);
-                            }
+                            row.components[2].setDisabled(false);
+                            row.components[3].setDisabled(false);
+                            
                             break;
                         case 'next':
                             currentPage++;
-                            if(row.components[0].disabled){
-                                row.components[0].setDisabled(false);
-                            }
-                            if(row.components[1].disabled){
-                                row.components[1].setDisabled(false);
-                            }
-                            if(currentPage == Math.ceil(queue.length/songsPerPage)){
+                            row.components[0].setDisabled(false);
+                            row.components[1].setDisabled(false);
+                            if(currentPage == Math.ceil(queue.songs.length/songsPerPage)){
                                 row.components[2].setDisabled(true);
                                 row.components[3].setDisabled(true);
                             }
                             break;
                         case 'last':
-                            currentPage = Math.ceil(queue.length/songsPerPage);
-                            if(row.components[0].disabled){
-                                row.components[0].setDisabled(false);
-                            }
-                            if(row.components[1].disabled){
-                                row.components[1].setDisabled(false);
-                            }
+                            currentPage = Math.ceil(queue.songs.length/songsPerPage);
+                            row.components[0].setDisabled(false);
+                            row.components[1].setDisabled(false);
                             row.components[2].setDisabled(true);
                             row.components[3].setDisabled(true);
                             break;
                         default:
                             console.log(`unknown button id: ${i.customId}`);
                     }
-                    i.update({
-                        embeds: [generateEmbed(queue, currentPage, songsPerPage)],
-                        components: row
+                    embed = generateEmbed(queue, currentPage, songsPerPage);
+                    await i.update({
+                        embeds: [embed],
+                        components: [row]
                     });
                 }catch(error){
                     console.log(error);
@@ -158,7 +146,7 @@ module.exports = {
  * @returns {<EmbedBuilder>}
  */
  const generateEmbed = (queue, page, songsPerPage) => {
-    const songs = queue.songs.slice(page*songsPerPage+1,songsPerPage+1);
+    const songs = queue.songs.slice((page-1)*songsPerPage+1,page*songsPerPage+1);
     let loopEmoji = '';
     switch(queue.repeatMode){
         case 0:
@@ -180,23 +168,29 @@ module.exports = {
     return new EmbedBuilder()
         .setColor(0xABABAB)
         .setTitle('Music Queue')
-        .addFields((
+        .addFields(
             {
                 name: 'Now Playing:',
                 value: `[${queue.songs[0].name}](${queue.songs[0].url}) \n ${queue.songs[0].formattedDuration}, \t Added by <@${queue.songs[0].member.id}>`,
                 inline: false
+            },
+            {
+                name: '\u200b',
+                value: '**Next**',
+                inline: false
             }
-        ))
+        )
         .addFields(songs.map(s => (
             {
-                name: 'Next',
-                value: `${songs.indexOf(s)} \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t Added by <@${s.member.id}>`,
+                name: '\u200b',
+                value: `${songs.indexOf(s)+songsPerPage*(page-1)+1} \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t Added by <@${s.member.id}>`,
                 inline: false
             }
         )))
+        .setThumbnail(queue.songs[0].thumbnail)
         .addFields({ name: 'Queue length', value: queue.formattedDuration, inline: false })
         .addFields({ name: 'Loop mode', value: loopEmoji, inline: false })
         .addFields({ name: 'Player status', value: playerEmoji, inline: false })
-        .setFooter( {text: `Page ${page} of ${Math.ceil(queue.length/songsPerPage)}`});
+        .setFooter( {text: `Page ${page} of ${Math.ceil(queue.songs.length/songsPerPage)}`});
     
 }

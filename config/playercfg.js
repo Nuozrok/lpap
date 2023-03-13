@@ -36,18 +36,8 @@ module.exports.makePlayer = function (client){
                 .addFields((
                     {
                         name: '\u200b',
-                        value: `[${song.name}](${song.url})`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `${song.formattedDuration}`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `Added by <@${song.member.id}>`,
-                        inline: true
+                        value: `[${song.name}](${song.url}) \n ${song.formattedDuration}, \t Added by <@${song.member.id}>`,
+                        inline: false
                     }
                 ))
                 .setThumbnail(song.thumbnail);
@@ -60,18 +50,8 @@ module.exports.makePlayer = function (client){
                 .addFields((
                     {
                         name: '\u200b',
-                        value: `[${song.name}](${song.url})`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `${song.formattedDuration}`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `Added by <@${song.member.id}>`,
-                        inline: true
+                        value: `[${song.name}](${song.url}) \n ${song.formattedDuration}, \t Added by <@${song.member.id}>`,
+                        inline: false
                     }
                 ))
                 .setThumbnail(song.thumbnail)
@@ -82,7 +62,7 @@ module.exports.makePlayer = function (client){
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
                 .setTitle('Queued')
-                .setDescription(`Added to ${playlist.name} (${playlist.songs.length} songs) to the queue.`);
+                .setDescription(`Added ${playlist.name} (${playlist.songs.length} songs) to the queue.`);
 
             queue.textChannel?.send({ embeds: [embed] });
         })

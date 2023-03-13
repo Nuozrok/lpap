@@ -220,6 +220,8 @@ module.exports = {
                 
             // else original query was a URL
             }else{
+                await interaction.reply('fetching audio');
+                
                 // play audio - bot will automatically check if it needs to connect
                 await interaction.client.player.play(voiceChannel, query, {
                     textChannel: interaction.channel, 

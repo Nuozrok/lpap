@@ -1,5 +1,5 @@
 // move a song to a different position in the queue
-const { SlashCommandBuilder} = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()

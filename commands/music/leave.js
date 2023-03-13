@@ -40,7 +40,7 @@ module.exports = {
             let randomSnark = snark[Math.floor(Math.random() * snark.length)];
             await interaction.reply({content: randomSnark, ephemeral : true});
         }else{
-
+            await interaction.reply({content: `${interaction.guild.emojis.cache.random()}`});
             interaction.client.player.voices.leave(interaction.member);
         }
     }

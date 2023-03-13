@@ -1,5 +1,5 @@
 // skip to a particular time in the song
-const { SlashCommandBuilder} = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -66,7 +66,7 @@ module.exports = {
             // make sure to convert hours+minutes (if selected) to seconds before passing to distube
             const hours=interaction.options.getInteger('h') ?? 0;
             const minutes=interaction.options.getInteger('m') ?? 0;
-            const seconds=interaction.options.getInteger('m');
+            const seconds=interaction.options.getInteger('s');
             const time = 60*60*hours + 60*minutes + seconds;
 
             queue.seek(time);
