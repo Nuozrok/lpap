@@ -1,81 +1,22 @@
-[{
-    "duration_bin": 5700,
-    "games_played": 1,
-    "wins": 1
-}, {
-    "duration_bin": 3300,
-    "games_played": 218,
-    "wins": 92
-}, {
-    "duration_bin": 1800,
-    "games_played": 2652,
-    "wins": 1308
-}, {
-    "duration_bin": 3900,
-    "games_played": 43,
-    "wins": 26
-}, {
-    "duration_bin": 300,
-    "games_played": 14,
-    "wins": 8
-}, {
-    "duration_bin": 6000,
-    "games_played": 2,
-    "wins": 0
-}, {
-    "duration_bin": 3000,
-    "games_played": 512,
-    "wins": 243
-}, {
-    "duration_bin": 4200,
-    "games_played": 24,
-    "wins": 10
-}, {
-    "duration_bin": 4500,
-    "games_played": 11,
-    "wins": 7
-}, {
-    "duration_bin": 1200,
-    "games_played": 1381,
-    "wins": 736
-}, {
-    "duration_bin": 2700,
-    "games_played": 761,
-    "wins": 383
-}, {
-    "duration_bin": 5100,
-    "games_played": 2,
-    "wins": 0
-}, {
-    "duration_bin": 2100,
-    "games_played": 1967,
-    "wins": 966
-}, {
-    "duration_bin": 5400,
-    "games_played": 1,
-    "wins": 0
-}, {
-    "duration_bin": 900,
-    "games_played": 407,
-    "wins": 191
-}, {
-    "duration_bin": 600,
-    "games_played": 96,
-    "wins": 51
-}, {
-    "duration_bin": 2400,
-    "games_played": 1503,
-    "wins": 770
-}, {
-    "duration_bin": 3600,
-    "games_played": 119,
-    "wins": 54
-}, {
-    "duration_bin": 1500,
-    "games_played": 2140,
-    "wins": 1067
-}, {
-    "duration_bin": 4800,
-    "games_played": 3,
-    "wins": 1
-}]
+[
+  { duration_bin: 5700, games_played: 1, wins: 1 },
+  { duration_bin: 3300, games_played: 230, wins: 95 },
+  { duration_bin: 1800, games_played: 2821, wins: 1395 },
+  { duration_bin: 3900, games_played: 50, wins: 30 },
+  { duration_bin: 300, games_played: 14, wins: 8 },
+  { duration_bin: 6000, games_played: 2, wins: 0 },
+  { duration_bin: 3000, games_played: 555, wins: 263 },
+  { duration_bin: 4200, games_played: 28, wins: 12 },
+  { duration_bin: 4500, games_played: 14, wins: 9 },
+  { duration_bin: 1200, games_played: 1435, wins: 757 },
+  { duration_bin: 2700, games_played: 816, wins: 408 },
+  { duration_bin: 5100, games_played: 2, wins: 0 },
+  { duration_bin: 2100, games_played: 2079, wins: 1018 },
+  { duration_bin: 5400, games_played: 1, wins: 0 },
+  { duration_bin: 900, games_played: 419, wins: 197 },
+  { duration_bin: 600, games_played: 100, wins: 53 },
+  { duration_bin: 2400, games_played: 1579, wins: 808 },
+  { duration_bin: 3600, games_played: 128, wins: 60 },
+  { duration_bin: 1500, games_played: 2255, wins: 1127 },
+  { duration_bin: 4800, games_played: 3, wins: 1 }
+]

@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { request, Agent } = require('undici')
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
 // inside a command, event listener, etc.
@@ -24,6 +23,7 @@ module.exports = {
         // call the opendota api and retrieve a message similar to the one in data/examplepangotestdurations.json folder
 
         const url = "https://api.opendota.com/api/heroes/" + interaction.options.getString('hero') + "/durations";
+        const testurl = "https://api.urbandictionary.com/v0/define?term=dota"
         const frontendurl = "https://opendota.com/heroes/" + interaction.options.getString('hero') + "/durations";
         console.log(url);
 
@@ -32,69 +32,153 @@ module.exports = {
             .setTitle('Duration vs Winrate check')
             .setAuthor({ name: interaction.user.username, iconURL: interaction.user.avatarURL() })
             .setDescription('based on pro matches duration data for your given hero from opendota api')
-            .addFields({ name: 'Hero ID:', value: interaction.options.getString('hero')})
-            .addFields({ name: 'Opendota Link:', value: frontendurl})
+            .addFields({ name: 'Hero ID:', value: interaction.options.getString('hero') })
+            .addFields({ name: 'Opendota Link:', value: frontendurl })
             .setTimestamp()
 
-        //const agent = new Agent({ autoSelectFamily: true });
-        // const dotaResult = await request(url, { method: 'GET', dispatcher: agent })
-        const dotaResult = await request(url)
-            .then(async () => {
-                console.log(dotaResult.body);
+        const req = new XMLHttpRequest();
 
-                let herodata = dotaResult.body.json();
-                console.log(herodata);
+        function successListener() {
+
+            console.log(req.responseText);
+
+            let herodata = JSON.parse(req.responseText);
+            console.log(typeof (herodata));
+            console.log(herodata);
+
+            /* herodata contains a bunch of json objects showing # of games played, time range, and win number 
+             */
+            // duration_bin is in seconds for some reason, convert to minutes
+
+            function splitToArrays(jsonobjects) {
                 let duration_bin_minutes_array = [];
                 let games_played_array = [];
                 let games_won_array = [];
-                /* herodata contains a bunch of json objects showing # of games played, time range, and win number
-         * example response in herodata:
-         * [{
-        "duration_bin": 3300,
-        "games_played": 230,
-        "wins": 95
-        }, {
-        "duration_bin": 1800,
-        "games_played": 2820,
-        "wins": 1394
-        }, ]
-        
-         */
-                // duration_bin is in seconds for some reason, convert to minutes
-                for (i in herodata) {
-                    herodata[i].duration_bin_minutes = herodata[i].duration_bin / 60;
-                    duration_bin_minutes_array += herodata[i].duration_bin_minutes;
-                    games_played_array += herodata[i].games_played;
-                    games_won_array += herodata[i].games_won;
+                for (i in jsonobjects) {
+                    jsonobjects[i].duration_bin_minutes = jsonobjects[i].duration_bin / 60;
+                    duration_bin_minutes_array.push(jsonobjects[i].duration_bin_minutes);
+                    games_played_array.push(jsonobjects[i].games_played);
+                    games_won_array.push(jsonobjects[i].wins);
+
+                }
+                return [duration_bin_minutes_array, games_played_array, games_won_array];
+            }
+
+            // average game length = sum for all bins(games played per selected bin * selected bin's length) / total num of games played
+            function sumAndWeightedAverage(minutes, games) {
+                sum = 0;
+                weightSum = 0;
+                for (i in games) {
+                    sum += minutes[i] * games[i];
+                    weightSum += games[i];
+                    console.log(sum, weightSum);
                 }
 
-                // average game length = sum for all bins(games played per selected bin * selected bin's length) / total num of games played
-                const weightedAverage = (nums, weights) => {
-                    sum = 0;
-                    weightSum = 0;
-                    for (i in nums) {
-                        sum += nums[i];
-                        weightSum += weights[i];
-                    }
+                return [weightSum, sum / weightSum];
+            };
+            function winSumWinRate(games, wins) {
+                gamesum = 0;
+                winsum = 0;
+                for (i in games) {
+                    gamesum += games[i];
+                    winsum += wins[i];
+                    console.log(gamesum, winsum);
+                }
+                return [winsum, (winsum / gamesum)*100];
+            }
 
-                    return sum / weightSum;
-                };
-                //
-                averageGameLength = weightedAverage(duration_bin_minutes_array * games_played_array, games_played_array);
+            // total stats
+            const [tot_durations_minutes, tot_games_played, tot_games_won] = splitToArrays(herodata);
+            const [tot_game_sum, averageGameLength] = sumAndWeightedAverage(tot_durations_minutes, tot_games_played);
+            const [tot_wins_count, tot_win_rate] = winSumWinRate(tot_games_played, tot_games_won);
+            /*console.log(tot_durations_minutes, tot_games_played);
+            console.log('average game length is ' + averageGameLength);
+            console.log('total win rate is ' + total_win_rate);
+            */
 
-                longGames = herodata.filter(function (item) { return item.duration_bin_minutes < averageGameLength })
-                shortGames = herodata.filter(function (item) { return item.duration_bin >= averageGameLength })
+            // parse into long and short games based on performance against average game length
+            longGames = herodata.filter(function (item) { return item.duration_bin_minutes > averageGameLength });
+            shortGames = herodata.filter(function (item) { return item.duration_bin_minutes <= averageGameLength });
 
-                embedder = embedder.addFields({ name: 'average game length:', value: averageGameLength });
-                console.log('embedding...');
-                await interaction.editReply({ embeds: [embedder] });
-            })
-            .catch(async (error) => {
-                console.error(error);
-                console.log('error found');
-                embedder = embedder.addFields({ name: 'error', value: "we couldn't connect to the opendota api, slow down and try again"});
-                await interaction.editReply({ embeds: [embedder] });
-            })
+            // long game stats
+            const [long_durations_minutes, long_games_played, long_games_won] = splitToArrays(longGames);
+            const [long_game_sum, longGameLength] = sumAndWeightedAverage(long_durations_minutes, long_games_played);
+            const [long_wins_count, long_win_rate] = winSumWinRate(long_games_played, long_games_won);
+            /*console.log(long_durations_minutes, long_games_played, long_games_won);
+            console.log('winrate of long games is' + long_win_rate);
+            */
+
+            // short game stats
+            const [short_durations_minutes, short_games_played, short_games_won] = splitToArrays(shortGames);
+            const [short_game_sum, shortGameLength] = sumAndWeightedAverage(short_durations_minutes, short_games_played);
+            const [short_wins_count, short_win_rate] = winSumWinRate(short_games_played, short_games_won);
+            /*
+            console.log(short_durations_minutes, short_games_played);
+            console.log('winrate of short games is' + short_win_rate);
+            */
+
+            let interpretation = 'no verdict, technical error';
+            if (long_win_rate > short_win_rate) {
+                interpretation = 'Since Long Games are more likely to win than Short Games, you want to stall on this hero';
+            }
+            else if (long_win_rate < short_win_rate){
+                interpretation = 'Since Short Games are more likely to win than Long Games, you want to rush on this hero';
+            }
+            else
+                {
+                interpretation = 'Since winrates are equal, this hero is ok in both Long and Short Games';
+            }
+
+            // return output to the embedder
+            console.log('embedding...');
+            embedder = embedder.addFields({ name: 'average game length:', value: averageGameLength.toFixed(2) + ' minutes' });
+            embedder = embedder.addFields({ name: '# of games won:', value: tot_wins_count + ' games', inline:true });
+            embedder = embedder.addFields({ name: '# of games:', value: tot_game_sum + ' games', inline: true });
+            embedder = embedder.addFields({ name: 'win%:', value: tot_win_rate.toFixed(2) + '%', inline: true });
+
+            embedder = embedder.addFields({ name: 'expected game length > average length (long games):', value: longGameLength.toFixed(2) + ' minutes' });
+            embedder = embedder.addFields({ name: '# of long games won:', value: long_wins_count + ' games', inline: true });
+            embedder = embedder.addFields({ name: '# of long games:', value: long_game_sum + ' games', inline: true });
+            embedder = embedder.addFields({ name: 'win% for long games:', value: long_win_rate.toFixed(2) + '%', inline: true });
+
+            embedder = embedder.addFields({ name: 'expected game length <= average length (short games):', value: shortGameLength.toFixed(2) + ' minutes' });
+            embedder = embedder.addFields({ name: '# of short games won:', value: short_wins_count + ' games', inline: true });
+            embedder = embedder.addFields({ name: '# of short games:', value: short_game_sum + ' games', inline: true });
+            embedder = embedder.addFields({ name: 'win% for short games:', value: short_win_rate.toFixed(2) + '%', inline: true });
+
+
+            embedder = embedder.addFields({ name: 'Verdict:', value: interpretation });
+            // output to chat log
+            interaction.editReply({ embeds: [embedder] });
+        }
+
+
+        function transferFailed(error) {
+            console.error(error);
+            console.log('error found');
+            console.log(req.responseText);
+            embedder = embedder.addFields({ name: 'error', value: "we couldn't connect to the opendota api, try again some other time" });
+            interaction.editReply({ embeds: [embedder] });
+        }
+        // progress on transfers from the server to the client (downloads)
+        function updateProgress(event) {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                // ...
+            } else {
+                // Unable to compute progress information since the total size is unknown
+            }
+        }
+
+
+
+
+        req.addEventListener("progress", updateProgress);
+        req.addEventListener("load", successListener);
+        req.addEventListener("error", transferFailed);
+        req.open("GET", url);
+        //req.open("GET", testurl);
+        req.send();
 
 
     },
