@@ -136,18 +136,19 @@ module.exports = {
             embedder = embedder.addFields({ name: '# of games:', value: tot_game_sum + ' games', inline: true });
             embedder = embedder.addFields({ name: 'win%:', value: tot_win_rate.toFixed(2) + '%', inline: true });
 
-            embedder = embedder.addFields({ name: 'expected game length > average length (long games):', value: longGameLength.toFixed(2) + ' minutes' });
+            embedder = embedder.addFields({ name: 'average game length for games > average length (long games):', value: longGameLength.toFixed(2) + ' minutes' });
             embedder = embedder.addFields({ name: '# of long games won:', value: long_wins_count + ' games', inline: true });
             embedder = embedder.addFields({ name: '# of long games:', value: long_game_sum + ' games', inline: true });
             embedder = embedder.addFields({ name: 'win% for long games:', value: long_win_rate.toFixed(2) + '%', inline: true });
 
-            embedder = embedder.addFields({ name: 'expected game length <= average length (short games):', value: shortGameLength.toFixed(2) + ' minutes' });
+            embedder = embedder.addFields({ name: 'average game length for games <= average length (short games):', value: shortGameLength.toFixed(2) + ' minutes' });
             embedder = embedder.addFields({ name: '# of short games won:', value: short_wins_count + ' games', inline: true });
             embedder = embedder.addFields({ name: '# of short games:', value: short_game_sum + ' games', inline: true });
             embedder = embedder.addFields({ name: 'win% for short games:', value: short_win_rate.toFixed(2) + '%', inline: true });
 
 
             embedder = embedder.addFields({ name: 'Verdict:', value: interpretation });
+            embedder = embedder.addFooter({ text: 'disclaimer: lengths calculated using opendota\'s histogram bin durations. so a game that lasted < 5 minutes gets rounded up into the 5 minute bin'});
             // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
