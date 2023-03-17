@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+var fs = require('fs');
 
 // inside a command, event listener, etc.
 module.exports = {
@@ -10,15 +11,58 @@ module.exports = {
             option.setName('hero')
                 .setDescription('Select the hero')
                 .setRequired(true)
-                .addChoices(
-                    { name: 'Pangolier', value: '120' },
-                    { name: 'Anti Mage', value: '1' },
-                    { name: 'Marci', value: '136' }
-                )),
+                .setAutocomplete(true)
+        ),
+    async autocomplete(interaction) {
+        /* the opendota api has an annoying format where you can either choose the objects to be indexed by heroid, or by name
+         * I chose to grab the objects indexed by name (see dotarefreshcache.js)
+         * 
+         * but the name is useless for display purposes (who wants an autocomplete where the search shows 
+         * "npc_dota_hero_antimage")??
+         * 
+         * so instead we use array filtering to find the localized name, display that in the autocomplete, but really
+         * we wanted to calculate the hero id the whole time as that is what the opendota api wants
+         * 
+        */
+
+        const focusedValue = interaction.options.getFocused();
+
+        // const testchoices = ['Popular Topics: Threads', 'Sharding: Getting started', 'Library: Voice Connections', 'Interactions: Replying to slash commands', 'Popular Topics: Embed preview'];
+        var herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
+        herocache_array = Object.keys(herocache);
+        sample_hero_array = herocache_array.slice(0, 5);
+
+        // calculate the autocomplete results
+        let filtered = herocache_array.filter(function (choice) {
+            return herocache[choice].localized_name.startsWith(focusedValue);
+        });
+        console.log(filtered,' starts with', focusedValue);
+
+        // skip autocompleting on blank values and just return first 5 ones to show up
+        if (!focusedValue) {
+            filtered = herocache_array.filter(function (choice) {
+                return sample_hero_array.includes(herocache[choice].name);
+            });
+            console.log(filtered, 'updated due to no results');
+        }
+
+        await interaction.respond(
+            filtered.map(choice => ({ name: herocache[choice].localized_name, value: herocache[choice].id })),
+        );
+    },
     async execute(interaction) {
 
         // this might take a few seconds, tell discord to hold its horses
         await interaction.deferReply();
+
+        try {
+            if (!interaction.options.getInteger('hero').isInteger()) {
+                interaction.editReply('you did not put in a valid hero id');
+            }
+        }
+        catch (exception) {
+            interaction.editReply('did you even enter a value at all?');
+        }
 
         // call the opendota api and retrieve a message similar to the one in data/examplepangotestdurations.json folder
 
@@ -84,7 +128,7 @@ module.exports = {
                     winsum += wins[i];
                     console.log(gamesum, winsum);
                 }
-                return [winsum, (winsum / gamesum)*100];
+                return [winsum, (winsum / gamesum) * 100];
             }
 
             // total stats
@@ -121,19 +165,18 @@ module.exports = {
             if (long_win_rate > short_win_rate) {
                 interpretation = 'Since Long Games are more likely to win than Short Games, you want to stall on this hero';
             }
-            else if (long_win_rate < short_win_rate){
+            else if (long_win_rate < short_win_rate) {
                 interpretation = 'Since Short Games are more likely to win than Long Games, you want to rush on this hero';
             }
-            else
-                {
+            else {
                 interpretation = 'Since winrates are equal, this hero is ok in both Long and Short Games';
             }
 
             // return output to the embedder
             console.log('embedding...');
-            embedder = embedder.addFields({ name: 'overall stats', value: ' '});
-            embedder = embedder.addFields({ name: 'average game length:', value: averageGameLength.toFixed(2) + ' minutes' , inline: true});
-            embedder = embedder.addFields({ name: '# of games won:', value: tot_wins_count + ' games', inline:true });
+            embedder = embedder.addFields({ name: 'overall stats', value: ' ' });
+            embedder = embedder.addFields({ name: 'average game length:', value: averageGameLength.toFixed(2) + ' minutes', inline: true });
+            embedder = embedder.addFields({ name: '# of games won:', value: tot_wins_count + ' games', inline: true });
             embedder = embedder.addFields({ name: '# of games:', value: tot_game_sum + ' games', inline: true });
             embedder = embedder.addFields({ name: 'win%:', value: tot_win_rate.toFixed(2) + '%', inline: true });
 
@@ -151,7 +194,7 @@ module.exports = {
 
 
             embedder = embedder.addFields({ name: 'Verdict:', value: interpretation });
-            embedder = embedder.setFooter({ text: 'disclaimer: lengths calculated using opendota\'s histogram bin durations. so a game that lasted < 5 minutes gets rounded up into the 5 minute bin'});
+            embedder = embedder.setFooter({ text: 'disclaimer: lengths calculated using opendota\'s histogram bin durations. so a game that lasted < 5 minutes gets rounded up into the 5 minute bin' });
             // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
