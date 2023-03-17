@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var fs = require('fs');
+// both the autocomplete and the result need to be able to reference heroscache.json
+const herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
+const herocache_array = Object.keys(herocache);
 
 // inside a command, event listener, etc.
 module.exports = {
@@ -15,38 +18,32 @@ module.exports = {
         ),
     async autocomplete(interaction) {
         /* the opendota api has an annoying format where you can either choose the objects to be indexed by heroid, or by name
-         * I chose to grab the objects indexed by name (see dotarefreshcache.js)
+         * I chose to grab the objects indexed by id (see dotarefreshcache.js)
          * 
-         * but the name is useless for display purposes (who wants an autocomplete where the search shows 
+         * the name is useless for display purposes (who wants an autocomplete where the search shows 
          * "npc_dota_hero_antimage")??
          * 
-         * so instead we use array filtering to find the localized name, display that in the autocomplete, but really
-         * we wanted to calculate the hero id the whole time as that is what the opendota api wants
+         * we really want to calculate and the hero id the whole time as that is what the opendota api wants
          * 
         */
 
         const focusedValue = interaction.options.getFocused();
 
         // const testchoices = ['Popular Topics: Threads', 'Sharding: Getting started', 'Library: Voice Connections', 'Interactions: Replying to slash commands', 'Popular Topics: Embed preview'];
-        const herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
-        const herocache_array = Object.keys(herocache);
         const sample_hero_array = herocache_array.slice(0, 5);
 
         // calculate the autocomplete results
         let filtered = herocache_array.filter(function (choice) {
             return herocache[choice].localized_name.toUpperCase().startsWith(focusedValue.toUpperCase());
         });
-        console.log(filtered,' starts with', focusedValue);
 
         // skip autocompleting on blank values and just return first 5 ones to show up
         if (!focusedValue) {
-            filtered = herocache_array.filter(function (choice) {
-                return sample_hero_array.includes(herocache[choice].name);
-            });
-            console.log(filtered, 'updated due to no results');
+            filtered = sample_hero_array;
         }
+
         await interaction.respond(
-            filtered.map(choice => ({ name: herocache[choice].localized_name, value: herocache[choice].id.toString()})),
+            filtered.map(choice => ({ name: herocache[choice].localized_name, value: choice.toString() })),
         );
     },
     async execute(interaction) {
@@ -68,16 +65,19 @@ module.exports = {
         const url = "https://api.opendota.com/api/heroes/" + interaction.options.getString('hero') + "/durations";
         const testurl = "https://api.urbandictionary.com/v0/define?term=dota"
         const frontendurl = "https://opendota.com/heroes/" + interaction.options.getString('hero') + "/durations";
+        const staticurl = 'https://cdn.cloudflare.steamstatic.com/';
+        const currenthero = interaction.options.getString('hero');
+
         console.log(url);
 
         var embedder = new EmbedBuilder()
             .setColor(0x0099FF)
             .setTitle('Duration vs Winrate check')
-            .setAuthor({ name: interaction.user.username, iconURL: interaction.user.avatarURL() })
-            .setDescription('based on pro matches duration data for your given hero from opendota api')
-            .addFields({ name: 'Hero ID:', value: interaction.options.getString('hero') })
-            .addFields({ name: 'Opendota Link:', value: frontendurl })
-            .setTimestamp()
+            .setAuthor({
+                name: herocache[currenthero].localized_name + ' (Hero ID ' + currenthero + ')', iconURL: staticurl + herocache[currenthero].icon
+            })
+            .addFields({ name: 'Opendota Link: ' + frontendurl, value: ' ' })
+            .setTimestamp();
 
         const req = new XMLHttpRequest();
 
@@ -173,23 +173,21 @@ module.exports = {
 
             // return output to the embedder
             console.log('embedding...');
+            embedder = embedder.setThumbnail(staticurl + herocache[currenthero].img);
             embedder = embedder.addFields({ name: 'overall stats', value: ' ' });
-            embedder = embedder.addFields({ name: 'average game length:', value: averageGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# of games won:', value: tot_wins_count + ' games', inline: true });
-            embedder = embedder.addFields({ name: '# of games:', value: tot_game_sum + ' games', inline: true });
+            embedder = embedder.addFields({ name: 'avg length:', value: averageGameLength.toFixed(2) + ' minutes', inline: true });
+            embedder = embedder.addFields({ name: '# wins / # of games:', value: tot_wins_count + ' / '+ tot_game_sum, inline: true });
             embedder = embedder.addFields({ name: 'win%:', value: tot_win_rate.toFixed(2) + '%', inline: true });
 
             embedder = embedder.addFields({ name: 'long game stats (games where length > average length)', value: ' ' });
-            embedder = embedder.addFields({ name: 'average game length:', value: longGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# of long games won:', value: long_wins_count + ' games', inline: true });
-            embedder = embedder.addFields({ name: '# of long games:', value: long_game_sum + ' games', inline: true });
-            embedder = embedder.addFields({ name: 'win% for long games:', value: long_win_rate.toFixed(2) + '%', inline: true });
+            embedder = embedder.addFields({ name: 'avg length:', value: longGameLength.toFixed(2) + ' minutes', inline: true });
+            embedder = embedder.addFields({ name: '# of wins / # of games:', value: long_wins_count + ' / '+ long_game_sum, inline: true });
+            embedder = embedder.addFields({ name: 'win%:', value: long_win_rate.toFixed(2) + '%', inline: true });
 
             embedder = embedder.addFields({ name: 'short game stats (games where length <= average length)', value: ' ' });
-            embedder = embedder.addFields({ name: 'average game length:', value: shortGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# of short games won:', value: short_wins_count + ' games', inline: true });
-            embedder = embedder.addFields({ name: '# of short games:', value: short_game_sum + ' games', inline: true });
-            embedder = embedder.addFields({ name: 'win% for short games:', value: short_win_rate.toFixed(2) + '%', inline: true });
+            embedder = embedder.addFields({ name: 'avg length:', value: shortGameLength.toFixed(2) + ' minutes', inline: true });
+            embedder = embedder.addFields({ name: '# of wins / # of games:', value: short_wins_count + ' / ' + short_game_sum, inline: true });
+            embedder = embedder.addFields({ name: 'win%:', value: short_win_rate.toFixed(2) + '%', inline: true });
 
 
             embedder = embedder.addFields({ name: 'Verdict:', value: interpretation });

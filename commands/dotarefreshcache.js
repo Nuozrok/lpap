@@ -14,7 +14,7 @@ module.exports = {
         await interaction.deferReply();
 
         // call the opendota api and retrieve the latest hero_names.json object
-        const url = "https://api.opendota.com/api/constants/hero_names";
+        const url = "https://api.opendota.com/api/constants/heroes";
         const testurl = "https://api.urbandictionary.com/v0/define?term=dota"
 
         console.log(url);
