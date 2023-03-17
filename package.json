@@ -123,7 +123,7 @@
     "vary": "^1.1.2",
     "web-streams-polyfill": "^3.2.1",
     "ws": "^8.12.0",
-    "xmlhttprequest": "^1.8.0"
+    "xmlhttprequest": "^1.8.0",
     "ytdl-core": "^4.11.2"
   },
   "scripts": {
