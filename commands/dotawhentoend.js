@@ -28,13 +28,13 @@ module.exports = {
         const focusedValue = interaction.options.getFocused();
 
         // const testchoices = ['Popular Topics: Threads', 'Sharding: Getting started', 'Library: Voice Connections', 'Interactions: Replying to slash commands', 'Popular Topics: Embed preview'];
-        var herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
-        herocache_array = Object.keys(herocache);
-        sample_hero_array = herocache_array.slice(0, 5);
+        const herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
+        const herocache_array = Object.keys(herocache);
+        const sample_hero_array = herocache_array.slice(0, 5);
 
         // calculate the autocomplete results
         let filtered = herocache_array.filter(function (choice) {
-            return herocache[choice].localized_name.startsWith(focusedValue);
+            return herocache[choice].localized_name.toUpperCase().startsWith(focusedValue.toUpperCase());
         });
         console.log(filtered,' starts with', focusedValue);
 
@@ -45,9 +45,8 @@ module.exports = {
             });
             console.log(filtered, 'updated due to no results');
         }
-
         await interaction.respond(
-            filtered.map(choice => ({ name: herocache[choice].localized_name, value: herocache[choice].id })),
+            filtered.map(choice => ({ name: herocache[choice].localized_name, value: herocache[choice].id.toString()})),
         );
     },
     async execute(interaction) {
@@ -56,7 +55,7 @@ module.exports = {
         await interaction.deferReply();
 
         try {
-            if (!interaction.options.getInteger('hero').isInteger()) {
+            if (isNaN(interaction.options.getString('hero'))) {
                 interaction.editReply('you did not put in a valid hero id');
             }
         }
