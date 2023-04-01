@@ -142,7 +142,9 @@ module.exports = {
 
 /**
  * Creates an embed of queued music, splitting songs onto multiple pages.
+ * @param {number} queue The music queue object.
  * @param {number} page The page number to generate.
+ * @param {number} songsPerPage The number of songs to print on each page.
  * @returns {<EmbedBuilder>}
  */
  const generateEmbed = (queue, page, songsPerPage) => {
