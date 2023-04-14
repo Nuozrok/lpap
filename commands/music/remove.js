@@ -48,7 +48,7 @@ module.exports = {
             let randomSnark = snark[Math.floor(Math.random() * snark.length)];
             await interaction.reply({content: randomSnark, ephemeral : true});
         }else{
-
+            const origin = interaction.options.getInteger('origin');
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
                 .setTitle('Removing song')
@@ -80,7 +80,6 @@ module.exports = {
                     }
                 ));
 
-            const origin = interaction.options.getInteger('origin');
             queue.songs.splice(origin, 1);
 
             // reply to interaction
