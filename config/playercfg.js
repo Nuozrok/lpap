@@ -62,7 +62,7 @@ module.exports.makePlayer = function (client){
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
                 .setTitle('Queued')
-                .setDescription(`Added ${playlist.name} (${playlist.songs.length} songs) to the queue.`);
+                .setDescription(`Added *${playlist.name}* (${playlist.songs.length} songs) to the queue.`);
 
             queue.textChannel?.send({ embeds: [embed] });
         })

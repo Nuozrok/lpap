@@ -62,46 +62,19 @@ module.exports = {
 
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
-                .setTitle('Moving song')
-                .addFields((
+                .setTitle('Moved Song')
+                .addFields(
                     {
                         name: '\u200b',
-                        value: `${origin}`,
-                        inline: true
+                        value: `[${queue.songs[origin].name}](${queue.songs[origin].url}) \n ${queue.songs[0].formattedDuration}, Added by <@${queue.songs[0].member.id}>`,
+                        inline: false
                     },
                     {
                         name: '\u200b',
-                        value: `[${queue.songs[origin].name}](${queue.songs[origin].url})`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `${queue.songs[0].formattedDuration}`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `Added by <@${queue.songs[0].member.id}>`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: '\u200b',
+                        value: `**${origin}** to **${destination}**`,
                         inline: false
                     }
-                ))
-                .addFields((
-                    {
-                        name: '\u200b',
-                        value: `to`,
-                        inline: false
-                    },
-                    {
-                        name: '\u200b',
-                        value: `position ${destination}`,
-                        inline: false
-                    }
-                ));
+                );
 
             // remove origin item and store it
             let tmp = queue.songs.splice(origin, 1)[0];
