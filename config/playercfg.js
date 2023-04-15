@@ -16,7 +16,7 @@ const { SpotifyPlugin } = require('@distube/spotify');
 module.exports.makePlayer = function (client){
     // Create a new DisTube music player
     const distube = new DisTube(client, {
-        plugins: [new SoundCloudPlugin(), new SpotifyPlugin(), new YtDlpPlugin()], // expand video support
+        plugins: [new SoundCloudPlugin(), new SpotifyPlugin({emitEventsAfterFetching: true}), new YtDlpPlugin()], // expand video support
         searchSongs: 5, // number of options to list after search query
         searchCooldown: 30, // search canceled if query left unrefined for 30 seconds
         leaveOnEmpty: true, // leave when voice channel is empty
@@ -62,7 +62,7 @@ module.exports.makePlayer = function (client){
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
                 .setTitle('Queued')
-                .setDescription(`Added ${playlist.name} (${playlist.songs.length} songs) to the queue.`);
+                .setDescription(`Added *${playlist.name}* (${playlist.songs.length} songs) to the queue.`);
 
             queue.textChannel?.send({ embeds: [embed] });
         })

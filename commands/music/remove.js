@@ -48,39 +48,18 @@ module.exports = {
             let randomSnark = snark[Math.floor(Math.random() * snark.length)];
             await interaction.reply({content: randomSnark, ephemeral : true});
         }else{
-
+            const origin = interaction.options.getInteger('origin');
             const embed = new EmbedBuilder()
                 .setColor(0x4A9931)
-                .setTitle('Removing song')
-                .addFields((
+                .setTitle('Removed Song')
+                .addFields(
                     {
                         name: '\u200b',
-                        value: `${origin}`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `[${queue.songs[origin].name}](${queue.songs[origin].url})`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `${queue.songs[0].formattedDuration}`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: `Added by <@${queue.songs[0].member.id}>`,
-                        inline: true
-                    },
-                    {
-                        name: '\u200b',
-                        value: '\u200b',
+                        value: `**${origin}** \t [${queue.songs[origin].name}](${queue.songs[origin].url}) \n ${queue.songs[0].formattedDuration}, Added by <@${queue.songs[0].member.id}>`,
                         inline: false
                     }
-                ));
+                );
 
-            const origin = interaction.options.getInteger('origin');
             queue.songs.splice(origin, 1);
 
             // reply to interaction

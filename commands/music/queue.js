@@ -183,7 +183,7 @@ module.exports = {
         .addFields(songs.map(s => (
             {
                 name: '\u200b',
-                value: `${songs.indexOf(s)+songsPerPage*(page-1)+1} \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t Added by <@${s.member.id}>`,
+                value: `**${songs.indexOf(s)+songsPerPage*(page-1)+1}** \t [${s.name}](${s.url}) \n ${s.formattedDuration}, \t Added by <@${s.member.id}>`,
                 inline: false
             }
         )))

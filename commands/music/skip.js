@@ -42,7 +42,13 @@ module.exports = {
             await interaction.reply({content: randomSnark, ephemeral : true});
         }else{
 
-            await queue.skip();
+            // if nothing is next, then just stop
+            if(queue.songs.length <= 1){
+                await queue.stop();
+            // else, skip to next song
+            }else{
+                await queue.skip();
+            }
 
             // reply to interaction
             const embed = new EmbedBuilder()
