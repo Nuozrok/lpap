@@ -4,3 +4,16 @@ node_modules
 package-lock.json
 .vs/
 config.json
+*.pyc
+__pycache__/
+*.pyo
+*.egg-info/
+*.egg
+*.log
+*.sqlite3
+*.env
+/media/
+/staticfiles/
+/.vscode/
+/.idea/
+/node_modules/
