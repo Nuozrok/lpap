@@ -3,6 +3,7 @@ name: deploy updates to bot and restart
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
