@@ -19,6 +19,7 @@ jobs:
         script: |
           export NVM_DIR=~/.nvm
           source ~/.nvm/nvm.sh
+          PATH=$PATH:~/opt/bin:NVM_DIR
           cd ~/lpap
           pm2 stop lpap-bot
           git checkout main
