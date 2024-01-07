@@ -3,7 +3,7 @@ lpap.app in development
 
 ## Hosting - LPAP.APP
 - Discord bot 
-    - Currently hoted on a raspberry pi
+    - Currently hosted on a raspberry pi 4B
 - Website (login required)  
     - GitHub pages?
     - we own the domain lpap.app until Jan 4 2025
