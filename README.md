@@ -3,12 +3,11 @@ lpap.app in development
 
 ## Hosting - LPAP.APP
 - Discord bot 
-    - Currently hoted on an AWS EC2 t2.micro (Ubuntu) instance
-        - Free for one year. Would like to host on a Raspberry Pi 4 when they become available at MSRP again
+    - Currently hoted on a raspberry pi
 - Website (login required)  
     - GitHub pages?
-    - Google domain? https://domains.google.com/registrar/search?hl=en&searchTerm=lpap.app
-
+    - we own the domain lpap.app until Jan 4 2025
+  
 ## Planned Features
 - Website / server
     - SECURE LOGIN
