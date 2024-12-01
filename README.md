@@ -5,8 +5,12 @@ lpap.app in development
 - clone the repo
 - npm install
 - go to discord devleoper portal and get a copy of the bot token
-- create a .env file containing DISCORD_TOKEN=your-token-goes-here
+- create a .env file containing the following
+  - DISCORD_TOKEN=your-token-goes-here
+  - APP_ID=your-app-id-goes-here
+  - GUILD_ID=guild-id-goes-here_ which you get by right clicking on channel icon -> copy server id
 - node index.js
+- if registering new slash methods, then node deploy-commands.js
 
 
 ## Hosting - LPAP.APP
