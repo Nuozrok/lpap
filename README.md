@@ -1,6 +1,14 @@
 # lpap
 lpap.app in development
 
+## notes for michael so he doesn't forget how to test the bot:
+- clone the repo
+- npm install
+- go to discord devleoper portal and get a copy of the bot token
+- create a .env file containing DISCORD_TOKEN=your-token-goes-here
+- node index.js
+
+
 ## Hosting - LPAP.APP
 - Discord bot 
     - Currently hosted on a raspberry pi 4B
