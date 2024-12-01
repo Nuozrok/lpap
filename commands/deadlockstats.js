@@ -8,8 +8,8 @@ const herocache_array = Object.keys(herocache);
 // inside a command, event listener, etc.
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('dotawhentoend')
-        .setDescription('Checks winrate of hero in long duration matches vs short duration matches.')
+        .setName('deadlockstats')
+        .setDescription('PLACEHOLDERTEXT')
         .addStringOption(option =>
             option.setName('hero')
                 .setDescription('Select the hero')
