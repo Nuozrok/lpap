@@ -41,26 +41,27 @@ module.exports = {
         // if nothing is put, just grab some defaults
 		if(!focusedOption.value){
             if (focusedOption.name === 'account') {
-			    choices = accountscache.slice(0,5).map(accountscache => accountscache.personaname);
+			    choices = accountscache.slice(0,5).map(accountscache => ({'name': accountscache.personaname, 'value':accountscache.steamid}));
 		    }
 
 		    if (focusedOption.name === 'hero') {
-			    choices = heroscache.slice(0,5).map(heroscache => heroscache.name);
+			    choices = heroscache.slice(0,5).map(heroscache => ({'name': heroscache.name, 'value': heroscache.id}));
 		    }
         }
         // if a value was put, grab records that start with that persons name
         else{
             if (focusedOption.name === 'account'){
-                choices = accountscache.map(accountscache => accountscache.personaname);
+                choices = accountscache.map(accountscache => ({'name': accountscache.personaname, 'value':accountscache.steamid}));
             }
             if (focusedOption.name === 'hero'){
-                choices = heroscache.map(heroscache => heroscache.name);
+                choices = heroscache.map(heroscache => ({'name': heroscache.name, 'value': heroscache.id}));
             }
         }
 
-		const filtered = choices.filter(choice => choice.toUpperCase().startsWith(focusedOption.value.toUpperCase()));
-		await interaction.respond(
-			filtered.map(choice => ({ name: choice, value: choice })),
+		const filtered = choices.filter(choice => choice.name.toUpperCase().startsWith(focusedOption.value.toUpperCase()));
+		console.log(filtered);
+        await interaction.respond(
+			filtered.map(choice => ({ name: choice.name, value: choice.value.toString() })),
 		);
     },
 
@@ -74,144 +75,58 @@ module.exports = {
             if (isNaN(interaction.options.getString('hero'))) {
                 interaction.editReply('you did not put in a valid hero id');
             }
+            if (isNaN(interaction.options.getString('account'))) {
+                interaction.editReply('you did not put in a valid steam account');
+            }
         }
         catch (exception) {
             interaction.editReply('did you even enter a value at all?');
         }
 
+        // control flow will require multiple deadlock API calls
+        // first call the  https://analytics.deadlock-api.com/v2/players/{steam ID}/match-history endpoint to find recent matches
+        // then extract match ID's from match-history
+        // for each match ID: call https://data.deadlock-api.com/v1/matches/{Match ID}/metadata
+
         // call the opendota api and retrieve a message similar to the one in data/examplepangotestdurations.json folder
+        const currentHero = interaction.options.getString('hero');
+        const currentAccount = interaction.options.getString('account');
+        const currentHeroObject = heroscache.find(choice => choice.id.toString() === currentHero);
+        const currentAccountObject = accountscache.find(choice => choice.steamid === currentAccount);
+        console.log('current hero: ' +currentHeroObject.name);
+        console.log('current account: ' +currentAccountObject.personaname);
+        const match_history_url = "https://data.deadlock-api.com/v2/players/" + currentAccount + "/match-history/";
+        
+        const singular_match_url = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&min_match_id=29619493&max_match_id=29619493&limit=1000"
 
-        const url = "https://api.opendota.com/api/heroes/" + interaction.options.getString('hero') + "/durations";
-        const testurl = "https://api.urbandictionary.com/v0/define?term=dota"
-        const frontendurl = "https://opendota.com/heroes/" + interaction.options.getString('hero') + "/durations";
-        const staticurl = 'https://cdn.cloudflare.steamstatic.com/';
-        const currenthero = interaction.options.getString('hero');
-
-        console.log(url);
+        console.log(match_history_url);
 
         var embedder = new EmbedBuilder()
             .setColor(0x0099FF)
-            .setTitle('Duration vs Winrate check')
+            .setTitle(currentAccountObject.personaname + "'s Recent Deadlock Encounters with this hero:")
             .setAuthor({
-                name: herocache[currenthero].localized_name + ' (Hero ID ' + currenthero + ')', iconURL: staticurl + herocache[currenthero].icon
+                name: currentHeroObject.name + ' (Hero ID ' + currentHero + ')', iconURL: currentHeroObject.images.icon_hero_card
             })
-            .addFields({ name: 'Opendota Link: ' + frontendurl, value: ' ' })
             .setTimestamp();
 
         const req = new XMLHttpRequest();
 
         function successListener() {
 
-            console.log(req.responseText);
+            // console.log(req.responseText);
 
             let herodata = JSON.parse(req.responseText);
             console.log(typeof (herodata));
-            console.log(herodata);
+            console.log(herodata[0]);
+            //console.log(herodata.map(match => herodata.match_id));
 
-            /* herodata contains a bunch of json objects showing # of games played, time range, and win number 
-             */
-            // duration_bin is in seconds for some reason, convert to minutes
-
-            function splitToArrays(jsonobjects) {
-                let duration_bin_minutes_array = [];
-                let games_played_array = [];
-                let games_won_array = [];
-                for (i in jsonobjects) {
-                    jsonobjects[i].duration_bin_minutes = jsonobjects[i].duration_bin / 60;
-                    duration_bin_minutes_array.push(jsonobjects[i].duration_bin_minutes);
-                    games_played_array.push(jsonobjects[i].games_played);
-                    games_won_array.push(jsonobjects[i].wins);
-
-                }
-                return [duration_bin_minutes_array, games_played_array, games_won_array];
-            }
-
-            // average game length = sum for all bins(games played per selected bin * selected bin's length) / total num of games played
-            function sumAndWeightedAverage(minutes, games) {
-                sum = 0;
-                weightSum = 0;
-                for (i in games) {
-                    sum += minutes[i] * games[i];
-                    weightSum += games[i];
-                    console.log(sum, weightSum);
-                }
-
-                return [weightSum, sum / weightSum];
-            };
-            function winSumWinRate(games, wins) {
-                gamesum = 0;
-                winsum = 0;
-                for (i in games) {
-                    gamesum += games[i];
-                    winsum += wins[i];
-                    console.log(gamesum, winsum);
-                }
-                return [winsum, (winsum / gamesum) * 100];
-            }
-
-            // total stats
-            const [tot_durations_minutes, tot_games_played, tot_games_won] = splitToArrays(herodata);
-            const [tot_game_sum, averageGameLength] = sumAndWeightedAverage(tot_durations_minutes, tot_games_played);
-            const [tot_wins_count, tot_win_rate] = winSumWinRate(tot_games_played, tot_games_won);
-            /*console.log(tot_durations_minutes, tot_games_played);
-            console.log('average game length is ' + averageGameLength);
-            console.log('total win rate is ' + total_win_rate);
-            */
-
-            // parse into long and short games based on performance against average game length
-            longGames = herodata.filter(function (item) { return item.duration_bin_minutes > averageGameLength });
-            shortGames = herodata.filter(function (item) { return item.duration_bin_minutes <= averageGameLength });
-
-            // long game stats
-            const [long_durations_minutes, long_games_played, long_games_won] = splitToArrays(longGames);
-            const [long_game_sum, longGameLength] = sumAndWeightedAverage(long_durations_minutes, long_games_played);
-            const [long_wins_count, long_win_rate] = winSumWinRate(long_games_played, long_games_won);
-            /*console.log(long_durations_minutes, long_games_played, long_games_won);
-            console.log('winrate of long games is' + long_win_rate);
-            */
-
-            // short game stats
-            const [short_durations_minutes, short_games_played, short_games_won] = splitToArrays(shortGames);
-            const [short_game_sum, shortGameLength] = sumAndWeightedAverage(short_durations_minutes, short_games_played);
-            const [short_wins_count, short_win_rate] = winSumWinRate(short_games_played, short_games_won);
-            /*
-            console.log(short_durations_minutes, short_games_played);
-            console.log('winrate of short games is' + short_win_rate);
-            */
-
-            let interpretation = 'no verdict, technical error';
-            if (long_win_rate > short_win_rate) {
-                interpretation = 'Since Long Games are more likely to win than Short Games, you want to stall on this hero';
-            }
-            else if (long_win_rate < short_win_rate) {
-                interpretation = 'Since Short Games are more likely to win than Long Games, you want to rush on this hero';
-            }
-            else {
-                interpretation = 'Since winrates are equal, this hero is ok in both Long and Short Games';
-            }
+           
 
             // return output to the embedder
             console.log('embedding...');
-            embedder = embedder.setThumbnail(staticurl + herocache[currenthero].img);
+            embedder = embedder.setThumbnail(currentHeroObject.images.minimap_image);
             embedder = embedder.addFields({ name: 'overall stats', value: ' ' });
-            embedder = embedder.addFields({ name: 'avg length:', value: averageGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# wins / # of games:', value: tot_wins_count + ' / '+ tot_game_sum, inline: true });
-            embedder = embedder.addFields({ name: 'win%:', value: tot_win_rate.toFixed(2) + '%', inline: true });
-
-            embedder = embedder.addFields({ name: 'long game stats (games where length > average length)', value: ' ' });
-            embedder = embedder.addFields({ name: 'avg length:', value: longGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# of wins / # of games:', value: long_wins_count + ' / '+ long_game_sum, inline: true });
-            embedder = embedder.addFields({ name: 'win%:', value: long_win_rate.toFixed(2) + '%', inline: true });
-
-            embedder = embedder.addFields({ name: 'short game stats (games where length <= average length)', value: ' ' });
-            embedder = embedder.addFields({ name: 'avg length:', value: shortGameLength.toFixed(2) + ' minutes', inline: true });
-            embedder = embedder.addFields({ name: '# of wins / # of games:', value: short_wins_count + ' / ' + short_game_sum, inline: true });
-            embedder = embedder.addFields({ name: 'win%:', value: short_win_rate.toFixed(2) + '%', inline: true });
-
-
-            embedder = embedder.addFields({ name: 'Verdict:', value: interpretation });
-            embedder = embedder.setFooter({ text: 'disclaimer: lengths calculated using opendota\'s histogram bin durations. so a game that lasted < 5 minutes gets rounded up into the 5 minute bin' });
-            // output to chat log
+               // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
 
@@ -220,7 +135,7 @@ module.exports = {
             console.error(error);
             console.log('error found');
             console.log(req.responseText);
-            embedder = embedder.addFields({ name: 'error', value: "we couldn't connect to the opendota api, try again some other time" });
+            embedder = embedder.addFields({ name: 'error', value: "we couldn't connect to the deadlock api, try again some other time" });
             interaction.editReply({ embeds: [embedder] });
         }
         // progress on transfers from the server to the client (downloads)
@@ -239,7 +154,7 @@ module.exports = {
         req.addEventListener("progress", updateProgress);
         req.addEventListener("load", successListener);
         req.addEventListener("error", transferFailed);
-        req.open("GET", url);
+        req.open("GET", match_history_url);
         //req.open("GET", testurl);
         req.send();
 
