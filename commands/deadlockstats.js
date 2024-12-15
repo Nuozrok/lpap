@@ -88,17 +88,17 @@ module.exports = {
         // then extract match ID's from match-history
         // for each match ID: call https://data.deadlock-api.com/v1/matches/{Match ID}/metadata
 
-        // call the opendota api and retrieve a message similar to the one in data/examplepangotestdurations.json folder
+        // call the match history API and get metadata locally stored for purposes of populating the embed object
         const currentHero = interaction.options.getString('hero');
         const currentAccount = interaction.options.getString('account');
         const currentHeroObject = heroscache.find(choice => choice.id.toString() === currentHero);
         const currentAccountObject = accountscache.find(choice => choice.steamid === currentAccount);
         console.log('current hero: ' +currentHeroObject.name);
         console.log('current account: ' +currentAccountObject.personaname);
-        const match_history_url = "https://data.deadlock-api.com/v2/players/" + currentAccount + "/match-history/";
+        const match_history_url = "https://data.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?has_metadata=true";
         
-        const singular_match_url = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&min_match_id=29619493&max_match_id=29619493&limit=1000"
-
+        const singular_match_url_start = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&limit=1"
+ 
         console.log(match_history_url);
 
         var embedder = new EmbedBuilder()
@@ -111,21 +111,56 @@ module.exports = {
 
         const req = new XMLHttpRequest();
 
-        function successListener() {
+        
+
+        async function successListener() {
 
             // console.log(req.responseText);
 
-            let herodata = JSON.parse(req.responseText);
-            console.log(typeof (herodata));
-            console.log(herodata[0]);
-            //console.log(herodata.map(match => herodata.match_id));
+            let matches = JSON.parse(req.responseText).matches.map (match => singular_match_url_start+"&min_match_id=" +match.match_id.toString() + "&max_match_id="+match.match_id.toString());
+            //  &min_match_id=29619493&max_match_id=29619493
+            // each matches element is now in a format ready for the query parameters of the deadlock api /search/ endpoint
+            
+        // get individual metadata for each match  
+        // Use Promise.all to fetch data from all URLs concurrently
+            const fetchPromises = matches.map(url =>
+                fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                    throw new Error(`Failed to fetch from ${url}`);
+                    }
+                    return response.json();
+                })
+                .catch(err => {
+                    console.error(`Error fetching from ${url}:`, err);
+                    return null; // Return null if fetch fails
+                })
+            );
+    
+          const match_details =  await Promise.allSettled(fetchPromises);
+          const filtered_match_details = match_details.filter(result => Array.isArray(result.value) && result.value.length > 0)
+          .map(result => result.value).flat();
+          
+          console.log(filtered_match_details);
 
-           
+          function parse_match_details(match_details){
+            
+              matches_with_relevant_hero = filtered_match_details.filter(match => match.players_hero_id.includes(Number(currentHero)));
+              console.log('Matches with ' + currentHero + matches_with_relevant_hero);
+
+              // TODO: now that we know which matches contained that hero, extract the relative position of that hero within the player details arrays
+              // then cross-reference and use that to say: was I playing the selected hero? who won? were they on my team?
+              // were they carrying the game?
+                embedder = embedder.addFields({name: '# of matches encountering a ' + currentHeroObject.name, 
+                value: matches_with_relevant_hero.length.toString()});
+        }
+
+        parse_match_details(match_details);
 
             // return output to the embedder
             console.log('embedding...');
             embedder = embedder.setThumbnail(currentHeroObject.images.minimap_image);
-            embedder = embedder.addFields({ name: 'overall stats', value: ' ' });
+            embedder = embedder.addFields({ name: 'Total # of matches analyzed', value: filtered_match_details.length.toString() });
                // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
