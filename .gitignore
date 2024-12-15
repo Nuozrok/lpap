@@ -5,3 +5,4 @@ package-lock.json
 .vs/
 config.json
 .eslintrc.json
+test_file.js

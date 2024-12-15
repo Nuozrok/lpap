@@ -4,7 +4,6 @@ const { dotenv } = require('dotenv/config');
 var fs = require('fs');
 // both the autocomplete and the result need to be able to reference heroscache.json
 const accountscache= JSON.parse(fs.readFileSync('data/accountscache.json', 'utf8'));
-const accountscache_keys = Object.keys(accountscache);
 const { writeFile } = require('node:fs/promises');
 
 

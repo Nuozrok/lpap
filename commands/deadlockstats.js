@@ -1,15 +1,22 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+const { dotenv } = require('dotenv/config');
 var fs = require('fs');
 // both the autocomplete and the result need to be able to reference heroscache.json
-const herocache = JSON.parse(fs.readFileSync('data/heroscache.json', 'utf8'));
-const herocache_array = Object.keys(herocache);
+const accountscache= JSON.parse(fs.readFileSync('data/accountscache.json', 'utf8'));
+const heroscache= JSON.parse(fs.readFileSync('data/deadlockherodata.json', 'utf8'));
 
 // inside a command, event listener, etc.
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('deadlockstats')
         .setDescription('PLACEHOLDERTEXT')
+        .addStringOption(option =>
+            option.setName('account')
+                .setDescription('Select the account')
+                .setRequired(true)
+                .setAutocomplete(true)
+        )
         .addStringOption(option =>
             option.setName('hero')
                 .setDescription('Select the hero')
@@ -27,25 +34,37 @@ module.exports = {
          * 
         */
 
-        const focusedValue = interaction.options.getFocused();
+       	const focusedOption = interaction.options.getFocused(true);
+		let choices;
 
-        // const testchoices = ['Popular Topics: Threads', 'Sharding: Getting started', 'Library: Voice Connections', 'Interactions: Replying to slash commands', 'Popular Topics: Embed preview'];
-        const sample_hero_array = herocache_array.slice(0, 5);
+      
+        // if nothing is put, just grab some defaults
+		if(!focusedOption.value){
+            if (focusedOption.name === 'account') {
+			    choices = accountscache.slice(0,5).map(accountscache => accountscache.personaname);
+		    }
 
-        // calculate the autocomplete results
-        let filtered = herocache_array.filter(function (choice) {
-            return herocache[choice].localized_name.toUpperCase().startsWith(focusedValue.toUpperCase());
-        });
-
-        // skip autocompleting on blank values and just return first 5 ones to show up
-        if (!focusedValue) {
-            filtered = sample_hero_array;
+		    if (focusedOption.name === 'hero') {
+			    choices = heroscache.slice(0,5).map(heroscache => heroscache.name);
+		    }
+        }
+        // if a value was put, grab records that start with that persons name
+        else{
+            if (focusedOption.name === 'account'){
+                choices = accountscache.map(accountscache => accountscache.personaname);
+            }
+            if (focusedOption.name === 'hero'){
+                choices = heroscache.map(heroscache => heroscache.name);
+            }
         }
 
-        await interaction.respond(
-            filtered.map(choice => ({ name: herocache[choice].localized_name, value: choice.toString() })),
-        );
+		const filtered = choices.filter(choice => choice.toUpperCase().startsWith(focusedOption.value.toUpperCase()));
+		await interaction.respond(
+			filtered.map(choice => ({ name: choice, value: choice })),
+		);
     },
+
+
     async execute(interaction) {
 
         // this might take a few seconds, tell discord to hold its horses
