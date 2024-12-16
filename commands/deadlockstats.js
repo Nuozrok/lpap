@@ -95,7 +95,7 @@ module.exports = {
         const currentAccountObject = accountscache.find(choice => choice.steamid === currentAccount);
         console.log('current hero: ' +currentHeroObject.name);
         console.log('current account: ' +currentAccountObject.personaname);
-        const match_history_url = "https://data.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?has_metadata=true";
+        const match_history_url = "https://analytics.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?has_metadata=true";
         
         const singular_match_url_start = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&limit=1"
  
@@ -116,8 +116,8 @@ module.exports = {
         async function successListener() {
 
             // console.log(req.responseText);
-
-            let matches = JSON.parse(req.responseText).matches.map (match => singular_match_url_start+"&min_match_id=" +match.match_id.toString() + "&max_match_id="+match.match_id.toString());
+            const match_hist_metadata = JSON.parse(req.responseText);
+            let matches = match_hist_metadata.map (match => singular_match_url_start+"&min_match_id=" +match.match_id.toString() + "&max_match_id="+match.match_id.toString());
             //  &min_match_id=29619493&max_match_id=29619493
             // each matches element is now in a format ready for the query parameters of the deadlock api /search/ endpoint
             
@@ -141,21 +141,44 @@ module.exports = {
           const filtered_match_details = match_details.filter(result => Array.isArray(result.value) && result.value.length > 0)
           .map(result => result.value).flat();
           
-          console.log(filtered_match_details);
+          // console.log(filtered_match_details);
 
-          function parse_match_details(match_details){
+          function parse_match_details(match_details, match_hist_metadata){
             
               matches_with_relevant_hero = filtered_match_details.filter(match => match.players_hero_id.includes(Number(currentHero)));
-              console.log('Matches with ' + currentHero + matches_with_relevant_hero);
+              console.log('Matches with ' + currentHero);
+
+              console.log(matches_with_relevant_hero);
+
+              matches_with_relevant_hero.map(
+                  match => {
+              console.log(match.players_hero_id.indexOf(Number(currentHero)))
+              console.log(match.players_account_id.indexOf(Number(currentAccount)));
+              return;
+              });
+
+              console.log(match_hist_metadata);
+              // interesting, the metadata does not contain the actual steam account ID of the user. instead, it contains the same account_id returned from match history
+              // rest of the match data seems to match 1:1 with what shows up when I load the match on the deadlock "watch" client
+              
+
+
+
+              matches_with_relevant_hero_played_by_acct = matches_with_relevant_hero.filter(match => 
+              match.players_hero_id.indexOf(Number(currentHero)) === match.players_account_id.indexOf(Number(currentAccount)));
+
 
               // TODO: now that we know which matches contained that hero, extract the relative position of that hero within the player details arrays
               // then cross-reference and use that to say: was I playing the selected hero? who won? were they on my team?
               // were they carrying the game?
-                embedder = embedder.addFields({name: '# of matches encountering a ' + currentHeroObject.name, 
+                embedder = embedder.addFields({name: '# of matches including  a ' + currentHeroObject.name, 
                 value: matches_with_relevant_hero.length.toString()});
+
+                embedder = embedder.addFields({name: '# of matches where ' + currentAccountObject.personaname + " was the " + currentHeroObject.name,
+                value: matches_with_relevant_hero_played_by_acct.length.toString()});
         }
 
-        parse_match_details(match_details);
+        parse_match_details(match_details, match_hist_metadata);
 
             // return output to the embedder
             console.log('embedding...');
