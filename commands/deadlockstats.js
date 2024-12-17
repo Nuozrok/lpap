@@ -83,6 +83,11 @@ module.exports = {
             interaction.editReply('did you even enter a value at all?');
         }
 
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days in milliseconds
+        const unixTimestamp = Math.floor(thirtyDaysAgo.getTime() / 1000); // Convert to seconds
+        
+
         // control flow will require multiple deadlock API calls
         // first call the  https://analytics.deadlock-api.com/v2/players/{steam ID}/match-history endpoint to find recent matches
         // then extract match ID's from match-history
@@ -95,7 +100,7 @@ module.exports = {
         const currentAccountObject = accountscache.find(choice => choice.steamid === currentAccount);
         console.log('current hero: ' +currentHeroObject.name);
         console.log('current account: ' +currentAccountObject.personaname);
-        const match_history_url = "https://analytics.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?has_metadata=true";
+        const match_history_url = "https://analytics.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?min_unix_timestamp="+unixTimestamp;
         
         const singular_match_url_start = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&limit=1"
  
@@ -148,34 +153,127 @@ module.exports = {
               matches_with_relevant_hero = filtered_match_details.filter(match => match.players_hero_id.includes(Number(currentHero)));
               console.log('Matches with ' + currentHero);
 
-              console.log(matches_with_relevant_hero);
+              // used to find index within the players array because the ID's in there are not actually steam ID's
+              // console.log(matches_with_relevant_hero);
+              current_acct_id_deadlock = match_hist_metadata[0].account_id
+              console.log(current_acct_id_deadlock);
+              
+              // console.log(match_hist_metadata);
+              
+               
+              function teamFinder (match, wantDifferentPlayer, wantsameTeam)
+              {
+                  console.log(match.match_id);
+              // Ensure that currentHero and current_acct_id_deadlock are numbers (or already integers)
+                const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
+                const acctIdIndex = match.players_account_id.indexOf(Number(current_acct_id_deadlock));
+               
+                console.log(heroIndex  + ' ' + match.players_team[heroIndex]);
+                console.log(acctIdIndex + ' ' + match.players_team[acctIdIndex]);
+             
+                // Check if the two players are different (not the same player)
+                const areDifferentPlayer = heroIndex !== acctIdIndex;
+                console.log('different player?? ' + areDifferentPlayer);
 
-              matches_with_relevant_hero.map(
+                // Check if both players are on the same team
+                const sameTeam = match.players_team[heroIndex] === match.players_team[acctIdIndex];
+                console.log('same team?? ' + sameTeam);
+
+                return (wantDifferentPlayer === areDifferentPlayer) && (wantsameTeam === sameTeam);
+              }
+              
+              matches_with_relevant_hero_played_by_acct = matches_with_relevant_hero.filter(
                   match => {
-              console.log(match.players_hero_id.indexOf(Number(currentHero)))
-              console.log(match.players_account_id.indexOf(Number(currentAccount)));
-              return;
+              teamFinder(match, false, true);
+              });
+            
+
+              matches_with_relevant_hero_as_teammate = matches_with_relevant_hero.filter(
+                  match => {
+                  return teamFinder(match, true, true);
+              });
+              
+              matches_with_relevant_hero_as_enemy = matches_with_relevant_hero.filter(
+                  match => {
+                  return teamFinder(match, true, false);
               });
 
-              console.log(match_hist_metadata);
-              // interesting, the metadata does not contain the actual steam account ID of the user. instead, it contains the same account_id returned from match history
-              // rest of the match data seems to match 1:1 with what shows up when I load the match on the deadlock "watch" client
-              
+
+              function calculate_wins_and_networth(matches)
+              {
+                 const sum = matches.reduce((networthCounter, currentMatch) => 
+                 {
+                 const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
+                 return networthCounter + currentMatch.players_net_worth[heroIndex], 0
+                 });
+
+                 const wins = matches.reduce((winCounter, currentMatch) => 
+                 {
+                 const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
+                 return winCounter + currentMatch.players_won[heroIndex] ? 1:0, 0
+                 });
+
+                 return sum / length(matches), wins;
+
+              }
+
+              avg_net_worth_plyr, wins_plyr = calculate_wins_and_networth(matches_with_relevant_hero_played_by_acct);
+              avg_net_worth_mate, wins_mate = calculate_wins_and_networth(matches_with_relevant_hero_as_teammate);
+              avg_net_worth_enmy, wins_enmy = calculate_wins_and_networth(matches_with_relevant_hero_as_enemy);
 
 
 
-              matches_with_relevant_hero_played_by_acct = matches_with_relevant_hero.filter(match => 
-              match.players_hero_id.indexOf(Number(currentHero)) === match.players_account_id.indexOf(Number(currentAccount)));
 
 
-              // TODO: now that we know which matches contained that hero, extract the relative position of that hero within the player details arrays
-              // then cross-reference and use that to say: was I playing the selected hero? who won? were they on my team?
-              // were they carrying the game?
-                embedder = embedder.addFields({name: '# of matches including  a ' + currentHeroObject.name, 
-                value: matches_with_relevant_hero.length.toString()});
+                embedder = embedder.addFields(
+                    {name: '# of matches including  a ' + currentHeroObject.name, 
+                        value: matches_with_relevant_hero.length.toString()});
 
-                embedder = embedder.addFields({name: '# of matches where ' + currentAccountObject.personaname + " was the " + currentHeroObject.name,
-                value: matches_with_relevant_hero_played_by_acct.length.toString()});
+                embedder = embedder.addFields(
+                    {name: '# of matches where ' + currentAccountObject.personaname + ' was ' + currentHeroObject.name  ,
+                        value: matches_with_relevant_hero_played_by_acct.length.toString(),
+                            inline: true},
+                    {name: '# of wins: ',
+                         value: wins_plyr.toString(),
+                            inline: true},
+                    {name: 'avg net worth: ',
+                         value: avg_net_worth_plyr.toString(),
+                            inline: true},
+
+                            { name: ' ', value: ' ' },
+                );
+
+                embedder = embedder.addFields(
+                    {name: '# of matches where the teammate was ' + currentHeroObject.name,
+                        value: matches_with_relevant_hero_as_teammate.length.toString(),
+                            inline: true},
+                    {name: '# of wins: ',
+                         value: wins_mate.toString(),
+                            inline: true},
+                    {name: 'avg net worth: ',
+                         value: avg_net_worth_mate.toString(),
+                            inline: true},
+
+                            { name: ' ', value: ' ' },
+
+
+                );
+
+                embedder = embedder.addFields(
+                    {name: '# of matches where the enemy was ' + currentHeroObject.name,
+                        value: matches_with_relevant_hero_as_enemy.length.toString(),
+                            inline: true},
+                    {name: '# of wins: ',
+                         value: wins_enmy.toString(),
+                            inline: true},
+                    {name: 'avg net worth: ',
+                         value: avg_net_worth_enmy.toString(),
+                            inline: true},
+
+                            { name: ' ', value: ' ' },
+
+
+                );
         }
 
         parse_match_details(match_details, match_hist_metadata);
@@ -183,7 +281,7 @@ module.exports = {
             // return output to the embedder
             console.log('embedding...');
             embedder = embedder.setThumbnail(currentHeroObject.images.minimap_image);
-            embedder = embedder.addFields({ name: 'Total # of matches analyzed', value: filtered_match_details.length.toString() });
+            embedder = embedder.addFields({ name: 'Total # of matches analyzed since ' + thirtyDaysAgo.toString(), value: filtered_match_details.length.toString() });
                // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
