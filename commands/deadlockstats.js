@@ -5,12 +5,14 @@ var fs = require('fs');
 // both the autocomplete and the result need to be able to reference heroscache.json
 const accountscache= JSON.parse(fs.readFileSync('data/accountscache.json', 'utf8'));
 const heroscache= JSON.parse(fs.readFileSync('data/deadlockherodata.json', 'utf8'));
+var Vibrant = require('node-vibrant');
+
 
 // inside a command, event listener, etc.
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('deadlockstats')
-        .setDescription('PLACEHOLDERTEXT')
+        .setDescription('See your encounters with a deadlock hero in last 30 days of match history')
         .addStringOption(option =>
             option.setName('account')
                 .setDescription('Select the account')
@@ -100,14 +102,24 @@ module.exports = {
         const currentAccountObject = accountscache.find(choice => choice.steamid === currentAccount);
         console.log('current hero: ' +currentHeroObject.name);
         console.log('current account: ' +currentAccountObject.personaname);
-        const match_history_url = "https://analytics.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?min_unix_timestamp="+unixTimestamp;
+        const match_history_url = "https://analytics.deadlock-api.com/v2/players/" + currentAccount + "/match-history/?api_key="+process.env.DEADLOCK_API_KEY+"&min_unix_timestamp="+unixTimestamp;
         
-        const singular_match_url_start = "https://analytics.deadlock-api.com/v1/matches/search?match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&limit=1"
+        const singular_match_url_start = "https://analytics.deadlock-api.com/v1/matches/search?api_key="+process.env.DEADLOCK_API_KEY+"&match_info_return_fields=match_id%2Cstart_time%2Cduration_s%2Cmatch_mode%2Cgame_mode&match_player_return_fields=hero_id%2Cteam%2Ckills%2Cdeaths%2Cassists%2Cwon%2Caccount_id%2Clast_hits%2Cdenies%2Cassigned_lane%2Cnet_worth&limit=1"
  
         console.log(match_history_url);
+     
+        let color = 0x0099FF;
+
+        await Vibrant.from(currentHeroObject.images.minimap_image).getPalette((err, palette) => {
+        if (!err) {
+            color = palette.Vibrant.getHex();    // Get the hex value of the vibrant color
+            console.log(color); 
+                }
+        });
+
 
         var embedder = new EmbedBuilder()
-            .setColor(0x0099FF)
+            .setColor(color)
             .setTitle(currentAccountObject.personaname + "'s Recent Deadlock Encounters with " + currentHeroObject.name + ':')
             .setAuthor({
                 name: currentAccountObject.personaname + ' & ' + currentHeroObject.name , iconURL: currentAccountObject.avatarfull
@@ -263,7 +275,7 @@ module.exports = {
 
                 embedder = embedder.addFields(
                     {name: '# of matches where ' + currentAccountObject.personaname + ' was ' + currentHeroObject.name  ,
-                        value: matches_with_relevant_hero_played_by_acct.length.toString() + ', ' + currentHeroObject.name + ' won ' + wins_plyr,
+                        value: matches_with_relevant_hero_played_by_acct.length.toString() + ', won ' + wins_plyr,
                             inline: true},
                     {name: 'avg K/D/A:',
                          value: kills_per_match_plyr +' Kills/ '+ deaths_per_match_plyr + ' Deaths/' + assists_per_match_plyr + ' Assists',
@@ -277,7 +289,7 @@ module.exports = {
 
                 embedder = embedder.addFields(
                     {name: '# of matches where ally was ' + currentHeroObject.name,
-                        value: matches_with_relevant_hero_as_teammate.length.toString() + ', ' + currentHeroObject.name + ' won ' + wins_mate,
+                        value: matches_with_relevant_hero_as_teammate.length.toString() + ', won ' + wins_mate,
                             inline: true},
                     {name: 'avg K/D/A:',
                          value: kills_per_match_mate +' Kills/ '+ deaths_per_match_mate + ' Deaths/' + assists_per_match_mate + ' Assists',
@@ -293,7 +305,7 @@ module.exports = {
 
                 embedder = embedder.addFields(
                     {name: '# of matches where enemy was ' + currentHeroObject.name,
-                        value: matches_with_relevant_hero_as_enemy.length.toString()+ ', ' + currentHeroObject.name + ' won ' + wins_enmy,
+                        value: matches_with_relevant_hero_as_enemy.length.toString()+ ', enemy won ' + wins_enmy,
                             inline: true},
                     {name: 'avg K/D/A:',
                          value: kills_per_match_enmy +' Kills/ '+ deaths_per_match_enmy + ' Deaths/' + assists_per_match_enmy + ' Assists',

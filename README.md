@@ -10,6 +10,7 @@ lpap.app in development
   - APP_ID=your-app-id-goes-here
   - GUILD_ID=guild-id-goes-here_ which you get by right clicking on channel icon -> copy server id
   - STEAM_API_KEY= which you get by going to https://steamcommunity.com/dev/apikey
+  - DEADLOCK_API_KEY= which you get by asking michael
 - node index.js
 - if registering new slash methods, then node deploy-commands.js
 
