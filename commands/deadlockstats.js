@@ -108,9 +108,9 @@ module.exports = {
 
         var embedder = new EmbedBuilder()
             .setColor(0x0099FF)
-            .setTitle(currentAccountObject.personaname + "'s Recent Deadlock Encounters with this hero:")
+            .setTitle(currentAccountObject.personaname + "'s Recent Deadlock Encounters with " + currentHeroObject.name + ':')
             .setAuthor({
-                name: currentHeroObject.name + ' (Hero ID ' + currentHero + ')', iconURL: currentHeroObject.images.icon_hero_card
+                name: currentAccountObject.personaname + ' & ' + currentHeroObject.name , iconURL: currentAccountObject.avatarfull
             })
             .setTimestamp();
 
@@ -163,7 +163,7 @@ module.exports = {
                
               function teamFinder (match, wantDifferentPlayer, wantsameTeam)
               {
-                  console.log(match.match_id);
+                  console.log(match.match_id + 'wantDifferentPlayer:' + wantDifferentPlayer + 'wantsameTeam: ' + wantsameTeam);
               // Ensure that currentHero and current_acct_id_deadlock are numbers (or already integers)
                 const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
                 const acctIdIndex = match.players_account_id.indexOf(Number(current_acct_id_deadlock));
@@ -184,7 +184,7 @@ module.exports = {
               
               matches_with_relevant_hero_played_by_acct = matches_with_relevant_hero.filter(
                   match => {
-              teamFinder(match, false, true);
+               return teamFinder(match, false, true);
               });
             
 
@@ -198,60 +198,92 @@ module.exports = {
                   return teamFinder(match, true, false);
               });
 
-
+              // returns the following stats in an array bc I'm lazy
+              // Avg networth per Match containing current hero
+              // avg kills per match containing current hero
+              // avg deaths per match containing current hero
+              // average assists per match containing current hero
+              // average # of wins containing current hero
+              // average match duration containing current hero
               function calculate_wins_and_networth(matches)
               {
-                 const sum = matches.reduce((networthCounter, currentMatch) => 
+                 if (matches.length === 0){
+                    return [0,0,0,0,0,0];
+                 }
+
+                 const Counter = matches.reduce((Counter, currentMatch) => 
                  {
-                 const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
-                 return networthCounter + currentMatch.players_net_worth[heroIndex], 0
-                 });
+                 const heroIndex = currentMatch.players_hero_id.indexOf(Number(currentHero));
+                    Counter.networth += currentMatch.players_net_worth[heroIndex], 0
+                    Counter.kills += currentMatch.players_kills[heroIndex], 0
+                    Counter.deaths += currentMatch.players_deaths[heroIndex], 0
+                    Counter.assists += currentMatch.players_assists[heroIndex], 0
+                    return Counter;
+                 },{'networth': 0, 'kills': 0, 'deaths': 0,'assists':0});
+
+                 const duration = matches.reduce((durationCounter, currentMatch) =>
+                 {
+                    durationCounter += currentMatch.duration_s / 60, 0
+                    return durationCounter;
+                 },0);
 
                  const wins = matches.reduce((winCounter, currentMatch) => 
                  {
-                 const heroIndex = match.players_hero_id.indexOf(Number(currentHero));
-                 return winCounter + currentMatch.players_won[heroIndex] ? 1:0, 0
-                 });
+                 const heroIndex = currentMatch.players_hero_id.indexOf(Number(currentHero));
+                    winCounter += currentMatch.players_won[heroIndex] ? 1:0, 0
+                    return winCounter;
+                 },0);
 
-                 return sum / length(matches), wins;
+                
+
+
+                 return [
+                     (Counter.networth / matches.length).toFixed(2).toString(), 
+                     (Counter.kills / matches.length).toFixed(2).toString(),
+                     (Counter.deaths / matches.length).toFixed(2).toString(),
+                     (Counter.assists / matches.length).toFixed(2).toString(),
+                 (duration / matches.length).toFixed(2).toString(), 
+                 wins.toString()];
+
 
               }
 
-              avg_net_worth_plyr, wins_plyr = calculate_wins_and_networth(matches_with_relevant_hero_played_by_acct);
-              avg_net_worth_mate, wins_mate = calculate_wins_and_networth(matches_with_relevant_hero_as_teammate);
-              avg_net_worth_enmy, wins_enmy = calculate_wins_and_networth(matches_with_relevant_hero_as_enemy);
+              const [avg_net_worth_plyr, kills_per_match_plyr, deaths_per_match_plyr, assists_per_match_plyr, avg_duration_plyr, wins_plyr] = calculate_wins_and_networth(matches_with_relevant_hero_played_by_acct);
+              const [avg_net_worth_mate, kills_per_match_mate, deaths_per_match_mate, assists_per_match_mate, avg_duration_mate, wins_mate] = calculate_wins_and_networth(matches_with_relevant_hero_as_teammate);
+              const [avg_net_worth_enmy, kills_per_match_enmy, deaths_per_match_enmy, assists_per_match_enmy, avg_duration_enmy, wins_enmy] = calculate_wins_and_networth(matches_with_relevant_hero_as_enemy);
 
-
+              console.log([avg_net_worth_plyr, wins_plyr,avg_net_worth_mate, wins_mate,avg_net_worth_enmy, wins_enmy]);
 
 
 
                 embedder = embedder.addFields(
-                    {name: '# of matches including  a ' + currentHeroObject.name, 
-                        value: matches_with_relevant_hero.length.toString()});
+                    {name: '# of matches including ' + currentAccountObject.personaname + ' & a ' + currentHeroObject.name, 
+                        value: matches_with_relevant_hero.length.toString()}
+                );
 
                 embedder = embedder.addFields(
                     {name: '# of matches where ' + currentAccountObject.personaname + ' was ' + currentHeroObject.name  ,
-                        value: matches_with_relevant_hero_played_by_acct.length.toString(),
+                        value: matches_with_relevant_hero_played_by_acct.length.toString() + ', ' + currentHeroObject.name + ' won ' + wins_plyr,
                             inline: true},
-                    {name: '# of wins: ',
-                         value: wins_plyr.toString(),
+                    {name: 'avg K/D/A:',
+                         value: kills_per_match_plyr +' Kills/ '+ deaths_per_match_plyr + ' Deaths/' + assists_per_match_plyr + ' Assists',
                             inline: true},
-                    {name: 'avg net worth: ',
-                         value: avg_net_worth_plyr.toString(),
+                    {name: 'avg ' + currentHeroObject.name + ' net worth/duration: ',
+                         value: avg_net_worth_plyr + ' souls / ' + avg_duration_plyr + ' mins',
                             inline: true},
 
                             { name: ' ', value: ' ' },
                 );
 
                 embedder = embedder.addFields(
-                    {name: '# of matches where the teammate was ' + currentHeroObject.name,
-                        value: matches_with_relevant_hero_as_teammate.length.toString(),
+                    {name: '# of matches where ally was ' + currentHeroObject.name,
+                        value: matches_with_relevant_hero_as_teammate.length.toString() + ', ' + currentHeroObject.name + ' won ' + wins_mate,
                             inline: true},
-                    {name: '# of wins: ',
-                         value: wins_mate.toString(),
+                    {name: 'avg K/D/A:',
+                         value: kills_per_match_mate +' Kills/ '+ deaths_per_match_mate + ' Deaths/' + assists_per_match_mate + ' Assists',
                             inline: true},
-                    {name: 'avg net worth: ',
-                         value: avg_net_worth_mate.toString(),
+                    {name: 'avg ' + currentHeroObject.name + ' net worth/duration: ',
+                         value: avg_net_worth_mate + ' souls / ' + avg_duration_mate + ' mins',
                             inline: true},
 
                             { name: ' ', value: ' ' },
@@ -260,14 +292,14 @@ module.exports = {
                 );
 
                 embedder = embedder.addFields(
-                    {name: '# of matches where the enemy was ' + currentHeroObject.name,
-                        value: matches_with_relevant_hero_as_enemy.length.toString(),
+                    {name: '# of matches where enemy was ' + currentHeroObject.name,
+                        value: matches_with_relevant_hero_as_enemy.length.toString()+ ', ' + currentHeroObject.name + ' won ' + wins_enmy,
                             inline: true},
-                    {name: '# of wins: ',
-                         value: wins_enmy.toString(),
+                    {name: 'avg K/D/A:',
+                         value: kills_per_match_enmy +' Kills/ '+ deaths_per_match_enmy + ' Deaths/' + assists_per_match_enmy + ' Assists',
                             inline: true},
-                    {name: 'avg net worth: ',
-                         value: avg_net_worth_enmy.toString(),
+                    {name: 'avg ' + currentHeroObject.name + ' net worth/duration: ',
+                         value: avg_net_worth_enmy + ' souls / ' + avg_duration_enmy + ' mins',
                             inline: true},
 
                             { name: ' ', value: ' ' },
@@ -281,7 +313,7 @@ module.exports = {
             // return output to the embedder
             console.log('embedding...');
             embedder = embedder.setThumbnail(currentHeroObject.images.minimap_image);
-            embedder = embedder.addFields({ name: 'Total # of matches analyzed since ' + thirtyDaysAgo.toString(), value: filtered_match_details.length.toString() });
+            embedder = embedder.addFields({ name: 'Based on matches containing ' + currentAccountObject.personaname + ' since ' + thirtyDaysAgo.toString(), value: '('+filtered_match_details.length.toString() + ' matches found)' });
                // output to chat log
             interaction.editReply({ embeds: [embedder] });
         }
