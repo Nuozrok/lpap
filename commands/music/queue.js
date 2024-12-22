@@ -1,12 +1,12 @@
 // print a list of songs in the queue
 
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('queue')
         .setDescription('Print the music queue.')
-        .setDMPermission(false),
+        .setContexts(InteractionContextType.Guild), // dont dm the bot
     async execute(interaction){
          // log interaction
          console.log(`${interaction.user.username} is using the queue command`);

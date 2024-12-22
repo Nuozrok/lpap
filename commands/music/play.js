@@ -1,24 +1,19 @@
 // play audio
-const { SlashCommandBuilder, StringSelectMenuBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, StringSelectMenuBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Queue audio to be played from a link or search query. ')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addStringOption(option=>
             option
                 .setName('query')
                 .setDescription('Video link or search query')
                 .setRequired(true)),
-        /*.addAttachmentOption(option => option
-            .setName('file')
-            .setDescription('Audio file')
-            .setRequired(false)),*/
     async execute(interaction){
         // log interaction
         console.log(`${interaction.user.username} is using the play command`);
-
         const voiceChannel = interaction.member?.voice?.channel;
         const botVoiceChannel = interaction.client.player.voices?.get(interaction)?.channel;
         
@@ -40,35 +35,13 @@ module.exports = {
             let randomSnark = snark[Math.floor(Math.random() * snark.length)];
             await interaction.reply({content: randomSnark, ephemeral : true});
         }else{
-            
-            // This is harder to implement if we choose to use Distube because of how queueing is handled
-            /*
-            // is a file attached?
-            if(interaction.options.getAttachment('file')){
-                const attachment = interaction.options.getAttachment('file')
-
-                // make sure it is a media file (audio and not an image or something)
-                const type = attachment.contentType();
-                if(!type.includes('audio/')){
-                    let snark = ['My brother in Christ, I play music. What file are you even sending me?',
-                            'I don\'t know much, but I know this sure as hell isn\'t an audio file.',
-                            'I\'m not sure how you want me to make noises from this.',
-                            'I haven\'t heard of this one. Maybe because it isn\'t something that can be heard.'];
-                    let randomSnark = snark[Math.floor(Math.random() * snark.length)];
-                    await interaction.reply({content: randomSnark, ephemeral : true});
-                }else{
-                    const resource = attachment;
-                }
-            }else{
-                // search for audio
-
-            }
-            */
-
+            // search for audio
             let query = interaction.options.getString('query');
             // if the query does not resolve to a URL, try searching
             if(!isURL(query)){
-                let results = await interaction.client.player.search(query);
+                let results = await interaction.client.player.plugins[0].search( // refering to YouTube plugin in playercfg.js
+                    query, {type: "video", limit:10, safeSearch: false}
+                ); 
 
                 // prompt user to refine search query
                 let i = 0;
@@ -228,6 +201,7 @@ module.exports = {
                     member: interaction.member
                 });
             }
+            //}
         }
     }
 };

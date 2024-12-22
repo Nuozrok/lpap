@@ -1,11 +1,13 @@
 // remove a song in the queue
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('remove')
         .setDescription('Remove a song from the music queue.')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addIntegerOption(option=>
             option
                 .setName('origin')
@@ -61,7 +63,7 @@ module.exports = {
                 );
 
             queue.songs.splice(origin, 1);
-
+            
             // reply to interaction
             await interaction.reply({embeds: [embed]});
         }
