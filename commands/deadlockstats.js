@@ -8,6 +8,7 @@ const heroscache= JSON.parse(fs.readFileSync('data/deadlockherodata.json', 'utf8
 var { Vibrant } = require('node-vibrant/node');
 
 
+
 // inside a command, event listener, etc.
 module.exports = {
     data: new SlashCommandBuilder()
