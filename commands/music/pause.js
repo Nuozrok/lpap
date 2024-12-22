@@ -1,11 +1,11 @@
 // pause playing music
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('pause')
         .setDescription('Pauses the music player.')
-        .setDMPermission(false),
+        .setContexts(InteractionContextType.Guild), // dont dm the bot
     async execute(interaction){
         // log interaction
         console.log(`${interaction.user.username} is using the pause command`);

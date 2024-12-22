@@ -1,11 +1,11 @@
 // jump to a specific position in the queue
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('jump')
         .setDescription('Jump to a specific position in the music queue.')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addIntegerOption(option=>
             option
                 .setName('position')

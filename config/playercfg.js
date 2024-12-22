@@ -2,8 +2,8 @@
 
 const { EmbedBuilder} = require("discord.js");
 
-const { DisTube } = require('distube');
-const { YtDlpPlugin } = require("@distube/yt-dlp");
+const { DisTube, isVoiceChannelEmpty } = require('distube');
+const { YouTubePlugin } = require('@distube/youtube')
 const { SoundCloudPlugin } = require('@distube/soundcloud');
 const { SpotifyPlugin } = require('@distube/spotify');
 
@@ -16,14 +16,11 @@ const { SpotifyPlugin } = require('@distube/spotify');
 module.exports.makePlayer = function (client){
     // Create a new DisTube music player
     const distube = new DisTube(client, {
-        plugins: [new SoundCloudPlugin(), new SpotifyPlugin({emitEventsAfterFetching: true}), new YtDlpPlugin()], // expand video support
-        searchSongs: 5, // number of options to list after search query
-        searchCooldown: 30, // search canceled if query left unrefined for 30 seconds
-        leaveOnEmpty: true, // leave when voice channel is empty
-        emptyCooldown: 10, // leave after 10 seconds
-        leaveOnFinish: false, // stay in voice channel if queue ends
-        leaveOnStop: false, // stay in voice channel if issued stop command
+        // YouTubePlugin() must be the first element or bot will break
+        plugins: [new YouTubePlugin(), new SoundCloudPlugin(), new SpotifyPlugin()], // expand video support
         joinNewVoiceChannel: false, //stay in current voice channel if called to a new one
+        emitAddSongWhenCreatingQueue: true,
+        emitAddListWhenCreatingQueue: true,
         nsfw: true, // smut?
     });
 
@@ -66,31 +63,31 @@ module.exports.makePlayer = function (client){
 
             queue.textChannel?.send({ embeds: [embed] });
         })
-        .on('error', (textChannel, e) => {
-
+        .on('error', (e, queue, song) => {
             const embed = new EmbedBuilder()
                 .setColor(0xE4344C)
                 .setTitle('Error')
-                .setDescription(`${e.message.slice(0, 2000)}`);
-
-            textChannel.send({ embeds: [embed] });
+                .setDescription(`${e.message}`);
+            queue.textChannel?.send({ embeds: [embed] });
+            console.log(queue.textChannel);
             console.error(e);
         })
-        .on('finish', queue => queue.textChannel?.send('Queue finished!'))
-        //.on('finishSong', queue =>{});
-        .on('disconnect', queue => {
-            queue.textChannel?.send('👋 Disconnecting!');
+        .on('ffmpegDebug',  e => {
+            console.error(e);
         })
-        .on('empty', queue => {
-            queue.textChannel?.send('👀 Where did everybody go?');
-        });
-        //.on('searchResult', (message, result) => {})
-        //.on('searchCancel', message => {});
-        //.on('searchInvalidAnswer', message => {});
-        //.on('searchNoResult', message => {});
-        //.on('searchDone', () => {});
-        //.on('deleteQueue', () => {});
-        //.on('initQueue', () => {});
-        //.on('noRelated', () => {});
+        .on('finish', queue => queue.textChannel?.send('Queue finished!'));
+        // .on('disconnect', queue => {
+        //     queue.textChannel?.send('👋 Disconnecting!');
+        // });
+
+        // discordjs event listener
+        client.on('voiceStateUpdate', oldState => {
+        if(!oldState?.channel) return;
+        const voice = client.player.voices.get(oldState);
+        if (voice && isVoiceChannelEmpty(oldState)){
+            voice.leave();
+        }
+    });
+
     return distube;
 }

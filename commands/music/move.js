@@ -1,11 +1,11 @@
 // move a song to a different position in the queue
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('move')
         .setDescription('Move the position of one song in the music queue.')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addIntegerOption(option=>
             option
                 .setName('origin')

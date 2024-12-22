@@ -1,11 +1,11 @@
 // toggle looping the queue
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('loop')
         .setDescription('Toggles looping mode of the songs in the music queue.')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addIntegerOption(option =>
 			option
                 .setName('mode')

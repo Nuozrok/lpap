@@ -1,11 +1,11 @@
 // skip to a particular time in the song
-const { SlashCommandBuilder, EmbedBuilder} = require("discord.js");
+const { InteractionContextType, SlashCommandBuilder, EmbedBuilder} = require("discord.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('seek')
         .setDescription('Move to a particular time in the current song.')
-        .setDMPermission(false)
+        .setContexts(InteractionContextType.Guild) // dont dm the bot
         .addIntegerOption(option=>
             option
                 .setName('s')
