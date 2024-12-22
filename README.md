@@ -1,6 +1,20 @@
 # lpap
 lpap.app in development
 
+## notes for michael so he doesn't forget how to test the bot:
+- clone the repo
+- npm install
+- go to discord devleoper portal and get a copy of the bot token
+- create a .env file containing the following
+  - DISCORD_TOKEN=your-token-goes-here
+  - APP_ID=your-app-id-goes-here
+  - GUILD_ID=guild-id-goes-here_ which you get by right clicking on channel icon -> copy server id
+  - STEAM_API_KEY= which you get by going to https://steamcommunity.com/dev/apikey
+  - DEADLOCK_API_KEY= which you get by asking michael
+- node index.js
+- if registering new slash methods, then node deploy-commands.js
+
+
 ## Hosting - LPAP.APP
 - Discord bot 
     - Currently hosted on a raspberry pi 4B
