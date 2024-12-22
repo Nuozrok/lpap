@@ -5,7 +5,7 @@ var fs = require('fs');
 // both the autocomplete and the result need to be able to reference heroscache.json
 const accountscache= JSON.parse(fs.readFileSync('data/accountscache.json', 'utf8'));
 const heroscache= JSON.parse(fs.readFileSync('data/deadlockherodata.json', 'utf8'));
-var Vibrant = require('node-vibrant');
+var { Vibrant } = require('node-vibrant/node');
 
 
 // inside a command, event listener, etc.
@@ -110,12 +110,13 @@ module.exports = {
      
         let color = 0x0099FF;
 
-        await Vibrant.from(currentHeroObject.images.minimap_image).getPalette((err, palette) => {
-        if (!err) {
-            color = palette.Vibrant.getHex();    // Get the hex value of the vibrant color
-            console.log(color); 
-                }
-        });
+        const palette = await Vibrant.from(currentHeroObject.images.minimap_image).getPalette();
+        if (palette) {
+            color = palette.Vibrant.getHex(); // Get the vibrant color as a hex string
+            console.log(color);
+        } else {
+            console.log('color palette not found');
+        }
 
 
         var embedder = new EmbedBuilder()

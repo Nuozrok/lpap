@@ -79,6 +79,7 @@
     "negotiator": "^1.0.0",
     "node-domexception": "^2.0.1",
     "node-fetch": "^3.3.2",
+    "node-vibrant": "^4.0.0-alpha.5",
     "nodemon": "^3.1.9",
     "normalize-path": "^3.0.0",
     "object-inspect": "^1.13.3",
