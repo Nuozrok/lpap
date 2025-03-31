@@ -9,7 +9,7 @@
     "@distube/soundcloud": "^2.0.4",
     "@distube/spotify": "^2.0.2",
     "@distube/youtube": "^1.0.4",
-    "@distube/ytdl-core": "^4.15.9",
+    "@distube/ytdl-core": "^4.16.6",
     "@distube/ytpl": "^1.2.1",
     "@distube/ytsr": "^2.0.4",
     "abbrev": "^3.0.0",
